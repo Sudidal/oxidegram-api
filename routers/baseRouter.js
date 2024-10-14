@@ -1,8 +1,11 @@
 import express from "express";
-import baseController from "../controllers/indexController.js";
+import { registerRouter } from "./registerRouter.js";
 
 const router = express.Router();
 
-router.get("/", baseController.get);
+router.use("/register", registerRouter);
+router.use("/*", (req, res, next) => {
+  res.sendStatus(404);
+});
 
 export { router as baseRouter };
