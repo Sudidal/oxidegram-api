@@ -2,13 +2,16 @@
   "type": "module",
   "name": "express-template",
   "version": "1.0.0",
-  "description": "Template for express apps with prisma orm",
+  "description": "best facebook version",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
   "scripts": {
     "start": "node app.js",
-    "start-watch": "node --watch app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "NODE_ENV=development && node --watch app.js",
+    "test": "NODE_ENV=test && NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [],
   "author": "",
