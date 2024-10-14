@@ -1,10 +1,28 @@
 import express from "express";
+import session from "express-session";
 import getEnv from "./utils/getEnv.js";
+import configurePassport from "./passportConfig.js";
+import { PrismaSessionStore } from "@quixo3/prisma-session-store";
+import { PrismaClient } from "@prisma/client/extension";
 import errorHandler from "./middleware/errorHandler.js";
 import { baseRouter } from "./routers/baseRouter.js";
 
 const app = express();
 const PORT = getEnv("PORT");
+
+configurePassport();
+
+app.use(
+  session({
+    cookie: {
+      maxAge: 4 * 24 * 60 * 60 * 1000, //4 days
+    },
+    secret: getEnv("SESSION_SECRET"),
+    resave: true,
+    saveUninitialized: true,
+    store: new PrismaSessionStore(new PrismaClient()),
+  })
+);
 
 app.use("/", baseRouter);
 app.use(errorHandler);
