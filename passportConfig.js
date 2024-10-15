@@ -27,7 +27,7 @@ function configurePassport() {
 
   passport.use(
     new localStrategy(async (username, password, done) => {
-      const [user, err] = await asyncHandler.prismaQuery(
+      const [user, err] = await asyncHandler.prismaQuery(() =>
         prisma.user.findFirst({
           where: {
             username: username,
