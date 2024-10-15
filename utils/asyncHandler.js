@@ -1,24 +1,34 @@
 class AsyncHandler {
   constructor() {}
 
-  handle = async (func, next = null) => {
+  handle = async (func, errCallback = null) => {
     try {
       const result = await func();
       return [result, null];
     } catch (err) {
-      if (next) next(err);
+      if (errCallback) errCallback(err);
+      else {
+        console.error(err);
+      }
       return [null, err];
     }
   };
 
-  prismaQuery = async (query, next = null) => {
-    try {
-      const result = await query();
-      return [result, null];
-    } catch (err) {
-      if (next) next(err);
-      return [null, err];
+  prismaQuery = async (query, errCallback = null) => {
+    // Since Im lazy to implement something suibtable for
+    // prisma errors, I'll just use the general function
+    // and easily change this whenever I feel to
+
+    if (
+      query?.toString() !== "[object PrismaPromise]" &&
+      query()?.toString() !== "[object PrismaPromise]"
+    ) {
+      console.error(
+        "Didn't supply a prisma query to asyncHandler.prismaQuery()"
+      );
     }
+
+    return this.handle(query, errCallback);
   };
 }
 
