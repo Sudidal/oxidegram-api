@@ -12,6 +12,7 @@ const PORT = getEnv("PORT");
 
 configurePassport();
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
   session({
