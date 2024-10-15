@@ -8,8 +8,12 @@ class RegisterController {
   constructor() {}
 
   async post(req, res, next) {
-    console.log(req);
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const [hashedPassword, hashErr] = await asyncHandler.handle(() =>
+      bcrypt.hash(req.body.password, 10)
+    );
+    if (hashErr) {
+      return next(hashErr);
+    }
     const [result, err] = await asyncHandler.prismaQuery(
       () =>
         prisma.user.create({
