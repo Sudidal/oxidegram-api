@@ -16,40 +16,44 @@ model User {
 }
 
 model Profile {
-  id         Int       @id @default(autoincrement())
-  avatarUrl  String?
-  firstName  String    @db.VarChar(255)
-  lastName   String    @db.VarChar(255)
-  bio        String?
-  country    String    @db.VarChar(255)
-  city       String    @db.VarChar(255)
-  websiteUrl String
-  gender     Gender
-  userId     Int       @unique
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  follows    Profile[] @relation(name: "follow")
-  followers  Profile[] @relation(name: "follow")
-  posts      Post[]
-  comments   Comment[]
+  id            Int       @id @default(autoincrement())
+  avatarUrl     String?
+  firstName     String    @db.VarChar(255)
+  lastName      String    @db.VarChar(255)
+  bio           String?
+  country       String    @db.VarChar(255)
+  city          String    @db.VarChar(255)
+  websiteUrl    String
+  gender        Gender
+  userId        Int       @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  follows       Profile[] @relation(name: "follow")
+  followers     Profile[] @relation(name: "follow")
+  posts         Post[]
+  comments      Comment[]
+  likedPosts    Post[]    @relation("PostLike")
+  likedComments Comment[] @relation("CommentLike")
 }
 
 model Post {
   id          Int       @id @default(autoincrement())
-  publishDate DateTime
   content     String
+  publishDate DateTime
   authorId    Int
   author      Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments    Comment[]
+  likers      Profile[] @relation("PostLike")
 }
 
 model Comment {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   content     String
   publishDate DateTime
   authorId    Int
   postId      Int
-  author      Profile  @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author      Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likers      Profile[] @relation("CommentLike")
 }
 
 model Session {
