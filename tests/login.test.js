@@ -33,8 +33,7 @@ describe("Login Works Fine", () => {
         username: "oxide",
         password: "qwerty WHOPS",
       })
-      .expect(200)
-      .expect("Content-Type", /json/)
-      .expect({ message: "Login successfull" }, done);
+      .expect(401)
+      .expect("Content-Type", /json/, done);
   });
 });
