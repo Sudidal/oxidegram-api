@@ -5,11 +5,12 @@ function validateInput(validationChain) {
     validationChain,
     function (req, res, next) {
       const validationErrs = validationResult(req);
-      if (!validationErrs.isEmpty()) {
-        return res.json({ errors: validationErrs.array() });
-      }
       req.body.validatedData = matchedData(req);
-      next();
+      if (!validationErrs.isEmpty()) {
+        return res.status(400).json({ errors: validationErrs.array() });
+      } else {
+        next();
+      }
     },
   ];
 }
