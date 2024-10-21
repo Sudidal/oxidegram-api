@@ -9,8 +9,8 @@
     "supertest": "^7.0.0"
   },
   "scripts": {
-    "start": "node app.js",
-    "dev": "NODE_ENV=development && node --watch app.js",
+    "start": "node server.js",
+    "dev": "NODE_ENV=development && node --watch server.js",
     "test": "NODE_ENV=test && dotenv -e .env.test -- prisma migrate deploy && NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "keywords": [],
