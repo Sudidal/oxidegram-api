@@ -6,14 +6,11 @@ import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import prisma from "./utils/prisma.js";
 import errorHandler from "./middleware/errorHandler.js";
 import { baseRouter } from "./routers/baseRouter.js";
-import process from "process";
 
 const app = express();
 const PORT = getEnv("PORT");
 
 configurePassport();
-
-console.log(process.env.NODE_ENV);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -35,13 +32,4 @@ app.use(
 app.use("/", baseRouter);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(
-    "Server listening on port: " +
-      PORT +
-      "\n\x1b[32m" +
-      "http://localhost:" +
-      PORT +
-      "\x1b[0m"
-  );
-});
+export default app;
