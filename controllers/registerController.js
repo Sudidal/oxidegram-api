@@ -11,7 +11,7 @@ class RegisterController {
     validateInput(validationChains.registerValidationChain()),
     async (req, res, next) => {
       const [hashedPassword, hashErr] = await asyncHandler.handle(() =>
-        bcrypt.hash(req.body.validatedData.password, 10)
+        bcrypt.hash(req.validatedData.password, 10)
       );
       if (hashErr) {
         return next(hashErr);
@@ -20,8 +20,8 @@ class RegisterController {
         () =>
           prisma.user.create({
             data: {
-              username: req.body.validatedData.username,
-              email: req.body.validatedData.email,
+              username: req.validatedData.username,
+              email: req.validatedData.email,
               password: hashedPassword,
             },
           }),

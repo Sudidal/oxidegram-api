@@ -5,7 +5,7 @@ function validateInput(validationChain) {
     validationChain,
     function (req, res, next) {
       const validationErrs = validationResult(req);
-      req.body.validatedData = matchedData(req);
+      req.validatedData = matchedData(req);
       if (!validationErrs.isEmpty()) {
         return res.status(400).json({ errors: validationErrs.array() });
       } else {
