@@ -6,11 +6,14 @@ import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import prisma from "./utils/prisma.js";
 import errorHandler from "./middleware/errorHandler.js";
 import { baseRouter } from "./routers/baseRouter.js";
+import process from "process";
 
 const app = express();
 const PORT = getEnv("PORT");
 
 configurePassport();
+
+console.log(process.env.NODE_ENV);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
