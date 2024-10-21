@@ -1,10 +1,8 @@
 import passport from "passport";
 import localStrategy from "passport-local";
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import prisma from "./utils/prisma.js";
 import asyncHandler from "./utils/asyncHandler.js";
-
-const prisma = new PrismaClient();
 
 function configurePassport() {
   passport.serializeUser((user, done) => {

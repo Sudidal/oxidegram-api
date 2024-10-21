@@ -3,7 +3,7 @@ import session from "express-session";
 import getEnv from "./utils/getEnv.js";
 import configurePassport from "./passportConfig.js";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
-import { PrismaClient } from "@prisma/client";
+import prisma from "./utils/prisma.js";
 import errorHandler from "./middleware/errorHandler.js";
 import { baseRouter } from "./routers/baseRouter.js";
 
@@ -22,7 +22,7 @@ app.use(
     secret: getEnv("SESSION_SECRET"),
     resave: true,
     saveUninitialized: true,
-    store: new PrismaSessionStore(new PrismaClient(), {
+    store: new PrismaSessionStore(prisma, {
       dbRecordIdIsSessionId: true,
       dbRecordIdFunction: undefined,
     }),

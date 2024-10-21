@@ -1,10 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../utils/prisma.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import bcrypt from "bcryptjs";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
-
-const prisma = new PrismaClient();
 
 class RegisterController {
   constructor() {}

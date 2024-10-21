@@ -1,25 +1,28 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 class CustomValidators {
   constructor() {}
 
   async isUsernameNotUsed(value) {
-    const user = await prisma.user.findFirst({
-      where: {
-        username: value,
-      },
-    });
+    const [user, err] = await asyncHandler.prismaQuery(() =>
+      prisma.user.findFirst({
+        where: {
+          username: value,
+        },
+      })
+    );
     if (user) throw "";
     else return true;
   }
   async isEmailNotUsed(value) {
-    const user = await prisma.user.findFirst({
-      where: {
-        email: value,
-      },
-    });
+    const [user, err] = await asyncHandler.prismaQuery(() =>
+      prisma.user.findFirst({
+        where: {
+          email: value,
+        },
+      })
+    );
     if (user) throw "";
     else return true;
   }
