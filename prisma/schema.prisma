@@ -22,7 +22,7 @@ model Profile {
   lastName      String    @db.VarChar(255)
   bio           String?
   country       String    @db.VarChar(255)
-  websiteUrl    String
+  websiteUrl    String?
   gender        Gender
   userId        Int       @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
