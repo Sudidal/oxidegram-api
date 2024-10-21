@@ -22,7 +22,6 @@ model Profile {
   lastName      String    @db.VarChar(255)
   bio           String?
   country       String    @db.VarChar(255)
-  city          String    @db.VarChar(255)
   websiteUrl    String
   gender        Gender
   userId        Int       @unique
