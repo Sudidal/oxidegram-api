@@ -4,6 +4,7 @@ import getEnv from "./utils/getEnv.js";
 import configurePassport from "./passportConfig.js";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import prisma from "./utils/prisma.js";
+import cors from "cors";
 import errorHandler from "./middleware/errorHandler.js";
 import { baseRouter } from "./routers/baseRouter.js";
 
@@ -12,6 +13,7 @@ const PORT = getEnv("PORT");
 
 configurePassport();
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
