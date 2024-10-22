@@ -9,7 +9,7 @@ class ProfilesController {
   async getOne(req, res, next) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findMany({
-        where: req.params.profileId,
+        where: parseInt(req.params.profileId),
       })
     );
     if (err) {
