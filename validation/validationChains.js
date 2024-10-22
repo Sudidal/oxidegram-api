@@ -10,11 +10,11 @@ class ValidationChains {
       .isString()
       .trim()
       .isLength({
-        min: validationVars.username_min,
+        min: 1,
         max: validationVars.username_max,
       })
       .withMessage(
-        `Username must be between ${validationVars.username_min} and ${validationVars.username_max} characters`
+        `Username must be between 1 and ${validationVars.username_max} characters`
       )
       .bail()
       .custom(customValidators.isUsernameNotUsed)
@@ -35,6 +35,39 @@ class ValidationChains {
       .notEmpty()
       .custom(customValidators.isPasswordsMatch)
       .withMessage("Passwords do not match"),
+  ];
+
+  profileValidationChain = () => [
+    body("firstName")
+      .isString()
+      .trim()
+      .isLength({
+        min: 1,
+        max: validationVars.lastname_max,
+      })
+      .withMessage(
+        `First name should be between 1 and ${validationVars.firstname_max} characters`
+      ),
+    body("lastName")
+      .isString()
+      .trim()
+      .isLength({
+        min: 1,
+        max: validationVars.lastname_max,
+      })
+      .withMessage(
+        `Last name should be between 1 and ${validationVars.lastname_max} characters`
+      ),
+    body("bio")
+      .isLength({ min: 0, max: validationVars.bio_max })
+      .withMessage(
+        `Bio should not exceed ${validationVars.bio_max} characters`
+      ),
+    body("gender")
+      .isString()
+      .matches(/^(MALE|FEMALE)$/)
+      .withMessage("Gender should be a MALE or FEMALE"),
+    body("country").isString().trim().notEmpty(),
   ];
 
   postValidationChain = () => [
