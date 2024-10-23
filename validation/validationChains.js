@@ -30,7 +30,7 @@ class ValidationChains {
       .isString()
       .notEmpty()
       .withMessage("Please enter a password"),
-    body("confirm_password")
+    body("confirmPassword")
       .isString()
       .notEmpty()
       .custom(customValidators.isPasswordsMatch)
