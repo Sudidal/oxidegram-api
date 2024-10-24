@@ -1,9 +1,5 @@
-function refuseNotAuthed(req, res, next) {
-  if (req.user) {
-    next();
-  } else {
-    res.sendStatus(401);
-  }
-}
+import passport from "passport";
+
+const refuseNotAuthed = passport.authenticate("jwt", { session: false });
 
 export { refuseNotAuthed };

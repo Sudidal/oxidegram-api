@@ -1,28 +1,12 @@
 import passport from "passport";
-import localStrategy from "passport-local";
 import bcrypt from "bcryptjs";
-import prisma from "./utils/prisma.js";
 import asyncHandler from "./utils/asyncHandler.js";
+import localStrategy from "passport-local";
+import prisma from "./utils/prisma.js";
+import passportJwt from "passport-jwt";
+import getEnv from "./utils/getEnv.js";
 
 function configurePassport() {
-  passport.serializeUser((user, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id, done) => {
-    const [user, err] = await asyncHandler.prismaQuery(
-      prisma.user.findFirst({
-        where: {
-          id: id,
-        },
-      })
-    );
-    if (err) {
-      return done(err);
-    }
-    done(null, user);
-  });
-
   passport.use(
     new localStrategy(async (username, password, done) => {
       const [user, err] = await asyncHandler.prismaQuery(() =>
@@ -33,19 +17,38 @@ function configurePassport() {
         })
       );
 
-      if (!user || err) {
+      if (err) {
+        return done(err, false);
+      }
+      if (!user) {
         return done(null, false, { messages: "Username not found" });
       }
-      try {
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-          return done(null, false, { messages: "Incorrect password" });
-        }
-        return done(null, user);
-      } catch (err) {
-        done(err);
+
+      const [match, matchErr] = await asyncHandler.handle(() =>
+        bcrypt.compare(password, user.password)
+      );
+
+      if (matchErr) {
+        done(err, false);
       }
+      if (!match) {
+        return done(null, false, { messages: "Incorrect password" });
+      }
+
+      return done(null, user);
     })
+  );
+
+  passport.use(
+    new passportJwt.Strategy(
+      {
+        jwtFromRequest: passportJwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
+        secretOrKey: getEnv("JWT_SECRET"),
+      },
+      (jwtPayload, done) => {
+        return done(null, jwtPayload);
+      }
+    )
   );
 }
 

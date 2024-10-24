@@ -1,21 +1,28 @@
 import passport from "passport";
+import jwt from "jsonwebtoken";
+import getEnv from "../utils/getEnv.js";
 
 class LoginController {
   constructor() {}
 
   post(req, res, next) {
-    passport.authenticate("local", function (err, user, info) {
-      if (err || !user) {
-        console.log(info);
-        return res.status(401).json({ errors: info.message });
-      }
-      req.login(user, (err) => {
-        if (err) {
-          console.error(err);
+    passport.authenticate(
+      "local",
+      { session: false },
+      function (err, user, info) {
+        if (err || !user) {
+          console.log(info);
+          return res.status(401).json({ errors: info.message });
         }
-        res.json({ message: "Login successfull" });
-      });
-    })(req, res, next);
+        req.login(user, { session: false }, (err) => {
+          if (err) {
+            next(err);
+          }
+          const jwtToken = jwt.sign(user, getEnv("JWT_SECRET"));
+          res.json({ message: "Login successfull", jwtToken: jwtToken });
+        });
+      }
+    )(req, res, next);
   }
 }
 

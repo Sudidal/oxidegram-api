@@ -9,8 +9,8 @@ const router = express.Router();
 
 router.use("/register", registerRouter);
 router.use("/login", loginRouter);
-router.use("/profiles", profilesRouter);
-router.use("/posts", postsRouter);
+router.use("/profiles", refuseNotAuthed, profilesRouter);
+router.use("/posts", refuseNotAuthed, postsRouter);
 router.use("/*", (req, res, next) => {
   res.sendStatus(404);
 });

@@ -55,13 +55,6 @@ model Comment {
   likers      Profile[] @relation("CommentLike")
 }
 
-model Session {
-  id        String   @id
-  sid       String   @unique
-  data      String
-  expiresAt DateTime
-}
-
 enum Gender {
   MALE
   FEMALE
