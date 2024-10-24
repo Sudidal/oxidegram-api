@@ -9,7 +9,9 @@ class ProfilesController {
   async getOne(req, res, next) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findMany({
-        where: parseInt(req.params.profileId),
+        where: {
+          id: parseInt(req.params.profileId),
+        },
       })
     );
     if (err) {
@@ -25,7 +27,6 @@ class ProfilesController {
       const [result, err] = await asyncHandler.prismaQuery(() =>
         prisma.profile.create({
           data: {
-            // userId: req.user.id,
             userId: parseInt(req.body.id),
             firstName: req.validatedData.firstName,
             lastName: req.validatedData.lastName,
