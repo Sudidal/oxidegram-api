@@ -18,7 +18,9 @@ class LoginController {
           if (err) {
             next(err);
           }
-          const jwtToken = jwt.sign(user, getEnv("JWT_SECRET"));
+          const jwtToken = jwt.sign(user, getEnv("JWT_SECRET"), {
+            expiresIn: 60 * 60 * 24 * 4, // 4 Days
+          });
           res.json({ message: "Login successfull", jwtToken: jwtToken });
         });
       }
