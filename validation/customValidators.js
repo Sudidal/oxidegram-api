@@ -27,7 +27,7 @@ class CustomValidators {
     else return true;
   }
   isPasswordsMatch(value, { req }) {
-    if (req.body.password === req.body.confirm_password) return true;
+    if (req.body.password === req.body.confirmPassword) return true;
     else return false;
   }
 }
