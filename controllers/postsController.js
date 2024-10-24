@@ -1,5 +1,6 @@
 import prisma from "../utils/prisma.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { requiresProfile } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
 
@@ -22,6 +23,7 @@ class PostsController {
   }
 
   post = [
+    requiresProfile,
     validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
       const [result, err] = await asyncHandler.prismaQuery(() =>
@@ -29,7 +31,7 @@ class PostsController {
           data: {
             content: req.validatedData.content,
             publishDate: new Date().toISOString(),
-            authorId: parseInt(req.body.id),
+            authorId: req.profile.id,
           },
         })
       );

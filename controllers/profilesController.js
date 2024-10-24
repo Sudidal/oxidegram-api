@@ -10,7 +10,7 @@ class ProfilesController {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findMany({
         where: {
-          id: parseInt(req.params.profileId),
+          id: req.user.id,
         },
       })
     );
@@ -27,7 +27,7 @@ class ProfilesController {
       const [result, err] = await asyncHandler.prismaQuery(() =>
         prisma.profile.create({
           data: {
-            userId: parseInt(req.body.id),
+            userId: req.user.id,
             firstName: req.validatedData.firstName,
             lastName: req.validatedData.lastName,
             gender: req.validatedData.gender,
