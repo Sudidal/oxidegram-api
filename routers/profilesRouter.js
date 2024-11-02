@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.get("/:profileId", profilesController.getOne);
 router.post("/", profilesController.post);
+router.put("/follow/:profileId", profilesController.follow);
 
 export { router as profilesRouter };

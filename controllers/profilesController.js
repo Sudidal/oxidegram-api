@@ -2,6 +2,7 @@ import prisma from "../utils/prisma.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
+import { requiresProfile } from "../middleware/authentication.js";
 
 class ProfilesController {
   constructor() {}
@@ -10,7 +11,7 @@ class ProfilesController {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findMany({
         where: {
-          id: req.user.id,
+          id: parseInt(req.params.profileId),
         },
       })
     );
@@ -40,6 +41,37 @@ class ProfilesController {
       }
 
       res.json({ message: "Profile created successfully" });
+    },
+  ];
+
+  follow = [
+    requiresProfile,
+    async (req, res, next) => {
+      const toFollowId = parseInt(req.params.profileId);
+      const followerId = req.profile.id;
+
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.profile.update({
+          where: {
+            id: followerId,
+          },
+          data: {
+            follows: {
+              set: [
+                {
+                  id: toFollowId,
+                },
+              ],
+            },
+          },
+        })
+      );
+
+      if (err) {
+        return next(err);
+      }
+
+      res.json({ message: "Followed profile successfully" });
     },
   ];
 }
