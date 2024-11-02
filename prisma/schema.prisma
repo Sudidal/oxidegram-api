@@ -4,7 +4,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["typedsql"]
 }
 
 model User {
@@ -16,22 +17,31 @@ model User {
 }
 
 model Profile {
-  id            Int       @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   avatarUrl     String?
-  firstName     String    @db.VarChar(255)
-  lastName      String    @db.VarChar(255)
+  firstName     String         @db.VarChar(255)
+  lastName      String         @db.VarChar(255)
   bio           String?
-  country       String    @db.VarChar(255)
+  country       String         @db.VarChar(255)
   websiteUrl    String?
   gender        Gender
-  userId        Int       @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  follows       Profile[] @relation(name: "follow")
-  followers     Profile[] @relation(name: "follow")
+  userId        Int            @unique
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  follows       Profile[]      @relation(name: "FollowedToFollower")
+  followers     Profile[]      @relation(name: "FollowedToFollower")
   posts         Post[]
   comments      Comment[]
-  likedPosts    Post[]    @relation("PostLike")
-  likedComments Comment[] @relation("CommentLike")
+  likedPosts    Post[]         @relation("PostLike")
+  likedComments Comment[]      @relation("CommentLike")
+  notifications NotificationsOnProfiles[]
+}
+
+model Notification {
+  id     Int              @id @default(autoincrement())
+  type   NotificationType
+  title  String           @db.VarChar(255)
+  url    String?
+  sentTo NotificationsOnProfiles[]
 }
 
 model Post {
@@ -55,7 +65,23 @@ model Comment {
   likers      Profile[] @relation("CommentLike")
 }
 
+model NotificationsOnProfiles {
+  notification  Notification  @relation(fields: [notificationId], references: [id])
+  profile  Profile  @relation(fields: [profileId], references: [id])
+  notificationId  Int
+  profileId  Int
+  seen  Boolean @default(false)
+
+  @@id([notificationId, profileId])
+}
+
 enum Gender {
   MALE
   FEMALE
+}
+
+enum NotificationType {
+  ACTIVITY
+  POST
+  ALERT
 }

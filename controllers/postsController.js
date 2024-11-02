@@ -26,7 +26,7 @@ class PostsController {
     requiresProfile,
     validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
-      const [result, err] = await asyncHandler.prismaQuery(() =>
+      const [newPost, err] = await asyncHandler.prismaQuery(() =>
         prisma.post.create({
           data: {
             content: req.validatedData.content,
@@ -38,6 +38,22 @@ class PostsController {
 
       if (!err) {
         res.json({ message: "Post created successfully" });
+
+        const notification = await prisma.notification.create({
+          data: {
+            type: "POST",
+            title: JSON.stringify({
+              postId: newPost.id,
+              authorId: newPost.authorId,
+            }),
+          },
+        });
+
+        const [result, err] = await asyncHandler.prismaQuery(
+          () =>
+            prisma.$queryRaw`SELECT push_notif_to_followers(${newPost.authorId}, ${notification.id})`
+        );
+        if (err) console.error(err);
       }
     },
   ];
