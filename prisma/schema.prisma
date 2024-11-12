@@ -17,29 +17,58 @@ model User {
 }
 
 model Profile {
-  id            Int            @id @default(autoincrement())
+  id            Int                       @id @default(autoincrement())
   avatarUrl     String?
-  firstName     String         @db.VarChar(255)
-  lastName      String         @db.VarChar(255)
+  firstName     String                    @db.VarChar(255)
+  lastName      String                    @db.VarChar(255)
   bio           String?
-  country       String         @db.VarChar(255)
+  country       String                    @db.VarChar(255)
   websiteUrl    String?
   gender        Gender
-  userId        Int            @unique
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  follows       Profile[]      @relation(name: "FollowedToFollower")
-  followers     Profile[]      @relation(name: "FollowedToFollower")
+  userId        Int                       @unique
+  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  follows       Profile[]                 @relation(name: "FollowedToFollower")
+  followers     Profile[]                 @relation(name: "FollowedToFollower")
   posts         Post[]
   comments      Comment[]
-  likedPosts    Post[]         @relation("PostLike")
-  likedComments Comment[]      @relation("CommentLike")
+  likedPosts    Post[]                    @relation("PostLike")
+  likedComments Comment[]                 @relation("CommentLike")
   notifications NotificationsOnProfiles[]
+  messages      Message[]
+  contacts      Contact[]                 @relation("contact")
+  contactedBy   Contact[]                 @relation("contactedBy")
+}
+
+model Contact {
+  id          Int     @id @default(autoincrement())
+  profileId   Int
+  contactedId Int
+  chatId      Int
+  profile     Profile @relation(name: "contact", fields: [profileId], references: [id], onDelete: Cascade)
+  contacted   Profile @relation(name: "contactedBy", fields: [contactedId], references: [id], onDelete: Cascade)
+  chat        Chat    @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  contacts   Contact[]
+  messages  Message[]
+}
+
+model Message {
+  id       Int      @id @default(autoincrement())
+  content  String
+  sendDate DateTime
+  sender   Profile  @relation(fields: [senderId], references: [id])
+  senderId Int
+  chatId   Int
+  chat     Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
-  id     Int              @id @default(autoincrement())
+  id     Int                       @id @default(autoincrement())
   type   NotificationType
-  title  String           @db.VarChar(255)
+  title  String                    @db.VarChar(255)
   url    String?
   sentTo NotificationsOnProfiles[]
 }
@@ -66,11 +95,11 @@ model Comment {
 }
 
 model NotificationsOnProfiles {
-  notification  Notification  @relation(fields: [notificationId], references: [id])
-  profile  Profile  @relation(fields: [profileId], references: [id])
-  notificationId  Int
-  profileId  Int
-  seen  Boolean @default(false)
+  notification   Notification @relation(fields: [notificationId], references: [id])
+  profile        Profile      @relation(fields: [profileId], references: [id])
+  notificationId Int
+  profileId      Int
+  seen           Boolean      @default(false)
 
   @@id([notificationId, profileId])
 }
