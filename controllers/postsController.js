@@ -7,6 +7,8 @@ import validateInput from "../middleware/validateInput.js";
 class PostsController {
   constructor() {}
 
+  #DEFAULT_LIMIT = 10;
+
   async getOne(req, res, next) {
     const [post, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findUnique({
@@ -21,6 +23,33 @@ class PostsController {
     }
     res.json({ post });
   }
+
+  getTop = async (req, res, next) => {
+    const [posts, err] = await asyncHandler.prismaQuery(() =>
+      prisma.post.findMany({
+        include: {
+          author: true,
+          _count: {
+            select: {
+              likers: true,
+              comments: true,
+            },
+          },
+        },
+        orderBy: {
+          likers: {
+            _count: "desc",
+          },
+        },
+        take: parseInt(req.query.limit) || this.#DEFAULT_LIMIT,
+      })
+    );
+
+    if (err) {
+      return next(err);
+    }
+    res.json({ posts });
+  };
 
   post = [
     requiresProfile,

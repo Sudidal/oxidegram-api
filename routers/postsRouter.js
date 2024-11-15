@@ -4,6 +4,7 @@ import commentsController from "../controllers/commentsController.js";
 
 const router = express.Router();
 
+router.get("/top", postsController.getTop);
 router.get("/:postId", postsController.getOne);
 router.post("/", postsController.post);
 
