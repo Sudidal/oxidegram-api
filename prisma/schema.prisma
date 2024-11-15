@@ -10,7 +10,6 @@ generator client {
 
 model User {
   id       Int      @id @default(autoincrement())
-  username String   @unique @db.VarChar(255)
   email    String   @unique @db.VarChar(255)
   password String
   profile  Profile?
@@ -18,9 +17,10 @@ model User {
 
 model Profile {
   id            Int                       @id @default(autoincrement())
-  avatarUrl     String?
+  username      String                    @unique @db.VarChar(255)
   firstName     String                    @db.VarChar(255)
   lastName      String                    @db.VarChar(255)
+  avatarUrl     String?
   bio           String?
   country       String                    @db.VarChar(255)
   websiteUrl    String?
@@ -50,16 +50,16 @@ model Contact {
 }
 
 model Chat {
-  id        Int       @id @default(autoincrement())
-  contacts   Contact[]
-  messages  Message[]
+  id       Int       @id @default(autoincrement())
+  contacts Contact[]
+  messages Message[]
 }
 
 model Message {
   id       Int      @id @default(autoincrement())
   content  String
   sendDate DateTime
-  sender   Profile  @relation(fields: [senderId], references: [id])
+  sender   Profile  @relation(fields: [senderId], references: [id], onDelete: Cascade)
   senderId Int
   chatId   Int
   chat     Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -95,8 +95,8 @@ model Comment {
 }
 
 model NotificationsOnProfiles {
-  notification   Notification @relation(fields: [notificationId], references: [id])
-  profile        Profile      @relation(fields: [profileId], references: [id])
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  profile        Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
   notificationId Int
   profileId      Int
   seen           Boolean      @default(false)

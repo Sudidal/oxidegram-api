@@ -2,7 +2,10 @@ import prisma from "../utils/prisma.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
-import { requiresProfile } from "../middleware/authentication.js";
+import {
+  requiresAccount,
+  requiresProfile,
+} from "../middleware/authentication.js";
 
 class ProfilesController {
   constructor() {}
@@ -23,12 +26,14 @@ class ProfilesController {
   }
 
   post = [
+    requiresAccount,
     validateInput(validationChains.profileValidationChain()),
     async (req, res, next) => {
       const [result, err] = await asyncHandler.prismaQuery(() =>
         prisma.profile.create({
           data: {
             userId: req.user.id,
+            username: req.validatedData.username,
             firstName: req.validatedData.firstName,
             lastName: req.validatedData.lastName,
             gender: req.validatedData.gender,

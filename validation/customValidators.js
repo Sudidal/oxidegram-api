@@ -6,7 +6,7 @@ class CustomValidators {
 
   async isUsernameNotUsed(value) {
     const [user, err] = await asyncHandler.prismaQuery(() =>
-      prisma.user.findFirst({
+      prisma.profile.findFirst({
         where: {
           username: value,
         },

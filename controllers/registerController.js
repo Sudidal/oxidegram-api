@@ -20,7 +20,6 @@ class RegisterController {
         () =>
           prisma.user.create({
             data: {
-              username: req.validatedData.username,
               email: req.validatedData.email,
               password: hashedPassword,
             },

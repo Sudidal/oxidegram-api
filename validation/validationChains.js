@@ -6,19 +6,6 @@ class ValidationChains {
   constructor() {}
 
   registerValidationChain = () => [
-    body("username")
-      .isString()
-      .trim()
-      .isLength({
-        min: 1,
-        max: validationVars.username_max,
-      })
-      .withMessage(
-        `Username must be between 1 and ${validationVars.username_max} characters`
-      )
-      .bail()
-      .custom(customValidators.isUsernameNotUsed)
-      .withMessage("Username already in use"),
     body("email")
       .isEmail()
       .trim()
@@ -38,6 +25,19 @@ class ValidationChains {
   ];
 
   profileValidationChain = () => [
+    body("username")
+      .isString()
+      .trim()
+      .isLength({
+        min: 1,
+        max: validationVars.username_max,
+      })
+      .withMessage(
+        `Username must be between 1 and ${validationVars.username_max} characters`
+      )
+      .bail()
+      .custom(customValidators.isUsernameNotUsed)
+      .withMessage("Username already in use"),
     body("firstName")
       .isString()
       .trim()
