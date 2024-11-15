@@ -8,35 +8,38 @@ import getEnv from "./utils/getEnv.js";
 
 function configurePassport() {
   passport.use(
-    new localStrategy(async (username, password, done) => {
-      const [user, err] = await asyncHandler.prismaQuery(() =>
-        prisma.user.findFirst({
-          where: {
-            username: username,
-          },
-        })
-      );
+    new localStrategy(
+      { usernameField: "email" },
+      async (email, password, done) => {
+        const [user, err] = await asyncHandler.prismaQuery(() =>
+          prisma.user.findFirst({
+            where: {
+              email: email,
+            },
+          })
+        );
 
-      if (err) {
-        return done(err, false);
-      }
-      if (!user) {
-        return done(null, false, { messages: "Username not found" });
-      }
+        if (err) {
+          return done(err, false);
+        }
+        if (!user) {
+          return done(null, false, { messages: "E-mail not found" });
+        }
 
-      const [match, matchErr] = await asyncHandler.handle(() =>
-        bcrypt.compare(password, user.password)
-      );
+        const [match, matchErr] = await asyncHandler.handle(() =>
+          bcrypt.compare(password, user.password)
+        );
 
-      if (matchErr) {
-        done(err, false);
-      }
-      if (!match) {
-        return done(null, false, { messages: "Incorrect password" });
-      }
+        if (matchErr) {
+          done(err, false);
+        }
+        if (!match) {
+          return done(null, false, { messages: "Incorrect password" });
+        }
 
-      return done(null, user);
-    })
+        return done(null, user);
+      }
+    )
   );
 
   passport.use(
