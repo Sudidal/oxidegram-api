@@ -6,6 +6,9 @@ import {
   requiresAccount,
   requiresProfile,
 } from "../middleware/authentication.js";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 
 class ProfilesController {
   constructor() {}
@@ -64,6 +67,7 @@ class ProfilesController {
 
   post = [
     requiresAccount,
+    upload.single("avatar"),
     validateInput(validationChains.profileValidationChain()),
     async (req, res, next) => {
       const [result, err] = await asyncHandler.prismaQuery(() =>

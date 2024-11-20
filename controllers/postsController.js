@@ -3,6 +3,9 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { requiresProfile } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 
 class PostsController {
   constructor() {}
@@ -53,6 +56,7 @@ class PostsController {
 
   post = [
     requiresProfile,
+    upload.single("image"),
     validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
       const [newPost, err] = await asyncHandler.prismaQuery(() =>
