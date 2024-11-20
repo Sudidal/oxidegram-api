@@ -10,9 +10,46 @@ import {
 class ProfilesController {
   constructor() {}
 
-  async getOne(req, res, next) {
+  #limit = 10;
+
+  getMe = [
+    requiresProfile,
+    async (req, res, next) => {
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.profile.findUnique({
+          where: {
+            id: req.profile.id,
+          },
+        })
+      );
+      if (err) {
+        return next(err);
+      }
+
+      res.json({ profile: result });
+    },
+  ];
+
+  getTop = async (req, res, next) => {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findMany({
+        take: parseInt(req.query.limit) | this.#limit,
+        orderBy: {
+          followers: {
+            _count: "desc",
+          },
+        },
+      })
+    );
+    if (err) {
+      return next(err);
+    }
+
+    res.json({ profiles: result });
+  };
+  async getOne(req, res, next) {
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.profile.findFirst({
         where: {
           id: parseInt(req.params.profileId),
         },
@@ -22,7 +59,7 @@ class ProfilesController {
       return next(err);
     }
 
-    res.json({ result });
+    res.json({ profile: result });
   }
 
   post = [
