@@ -75,7 +75,8 @@ model Notification {
 
 model Post {
   id          Int       @id @default(autoincrement())
-  content     String
+  content     String?
+  imageUrl    String
   publishDate DateTime
   authorId    Int
   author      Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)

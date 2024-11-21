@@ -7,6 +7,7 @@ import {
   requiresProfile,
 } from "../middleware/authentication.js";
 import multer from "multer";
+import remoteStorage from "../utils/remoteStorage.js";
 
 const upload = multer({ dest: "uploads/" });
 
@@ -70,6 +71,11 @@ class ProfilesController {
     upload.single("avatar"),
     validateInput(validationChains.profileValidationChain()),
     async (req, res, next) => {
+      const uploadRes = await remoteStorage.uploadAvatarImage(req.file);
+      if (uploadRes instanceof Error) {
+        return next(uploadRes);
+      }
+
       const [result, err] = await asyncHandler.prismaQuery(() =>
         prisma.profile.create({
           data: {
@@ -79,6 +85,7 @@ class ProfilesController {
             lastName: req.validatedData.lastName,
             gender: req.validatedData.gender,
             country: req.validatedData.country,
+            avatarUrl: uploadRes,
           },
         })
       );

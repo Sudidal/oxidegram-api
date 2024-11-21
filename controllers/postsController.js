@@ -4,8 +4,10 @@ import { requiresProfile } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
 import multer from "multer";
+import remoteStorage from "../utils/remoteStorage.js";
 
-const upload = multer({ dest: "uploads/" });
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class PostsController {
   constructor() {}
@@ -59,12 +61,19 @@ class PostsController {
     upload.single("image"),
     validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
+      const uploadRes = await remoteStorage.uploadPostImage(req.file);
+      if (uploadRes instanceof Error) {
+        return next(uploadRes);
+      }
+      console.log(uploadRes);
+
       const [newPost, err] = await asyncHandler.prismaQuery(() =>
         prisma.post.create({
           data: {
             content: req.validatedData.content,
             publishDate: new Date().toISOString(),
             authorId: req.profile.id,
+            imageUrl: uploadRes,
           },
         })
       );
