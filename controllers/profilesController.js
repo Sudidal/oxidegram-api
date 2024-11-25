@@ -57,6 +57,11 @@ class ProfilesController {
         where: {
           id: parseInt(req.params.profileId),
         },
+        include: {
+          posts: Boolean(req.query.posts),
+          follows: Boolean(req.query.follows),
+          followers: Boolean(req.query.followers),
+        },
       })
     );
     if (err) {
@@ -69,7 +74,7 @@ class ProfilesController {
   post = [
     requiresAccount,
     upload.single("avatar"),
-    validateInput(validationChains.profileValidationChain()),
+    // validateInput(validationChains.profileValidationChain()),
     async (req, res, next) => {
       const uploadRes = await remoteStorage.uploadAvatarImage(req.file);
       if (uploadRes instanceof Error) {
@@ -81,11 +86,7 @@ class ProfilesController {
           data: {
             userId: req.user.id,
             username: req.validatedData.username,
-            firstName: req.validatedData.firstName,
-            lastName: req.validatedData.lastName,
-            gender: req.validatedData.gender,
-            country: req.validatedData.country,
-            avatarUrl: uploadRes,
+            fullName: req.validatedData.fullName,
           },
         })
       );

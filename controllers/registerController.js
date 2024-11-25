@@ -22,13 +22,19 @@ class RegisterController {
             data: {
               email: req.validatedData.email,
               password: hashedPassword,
+              profile: {
+                create: {
+                  username: req.validatedData.username,
+                  fullName: req.validatedData.fullName,
+                },
+              },
             },
           }),
         next
       );
 
       if (!err) {
-        res.json({ message: "Account registered successfully" });
+        res.json({ message: "Created account and profile successfully" });
       }
     },
   ];
