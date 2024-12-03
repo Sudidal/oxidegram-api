@@ -57,10 +57,37 @@ class ProfilesController {
         where: {
           id: parseInt(req.params.profileId),
         },
-        include: {
+      })
+    );
+    if (err) {
+      return next(err);
+    }
+
+    res.json({ profile: result });
+  }
+  async getDetailsOfOne(req, res, next) {
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.profile.findFirst({
+        where: {
+          id: parseInt(req.params.profileId),
+        },
+        select: {
           posts: Boolean(req.query.posts),
           follows: Boolean(req.query.follows),
           followers: Boolean(req.query.followers),
+          savedPosts: Boolean(req.query.savedPosts),
+          contacts: Boolean(req.query.contacts)
+            ? {
+                include: {
+                  contacted: true,
+                  chat: {
+                    include: {
+                      messages: true,
+                    },
+                  },
+                },
+              }
+            : false,
         },
       })
     );
@@ -126,6 +153,30 @@ class ProfilesController {
       }
 
       res.json({ message: "Followed profile successfully" });
+    },
+  ];
+
+  savePost = [
+    requiresProfile,
+    async (req, res, next) => {
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.profile.update({
+          where: {
+            id: parseInt(req.profile.id),
+          },
+          data: {
+            savedPosts: {
+              connect: {
+                id: parseInt(req.params.postId),
+              },
+            },
+          },
+        })
+      );
+      if (err) {
+        return next(err);
+      }
+      res.json({ message: "Saved post successfully" });
     },
   ];
 }
