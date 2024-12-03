@@ -28,6 +28,7 @@ model Profile {
   follows       Profile[]                 @relation(name: "FollowedToFollower")
   followers     Profile[]                 @relation(name: "FollowedToFollower")
   posts         Post[]
+  savedPosts    Post[]                    @relation(name: "postsSave")
   comments      Comment[]
   likedPosts    Post[]                    @relation("PostLike")
   likedComments Comment[]                 @relation("CommentLike")
@@ -80,6 +81,7 @@ model Post {
   author      Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments    Comment[]
   likers      Profile[] @relation("PostLike")
+  savers      Profile[] @relation(name: "postsSave")
 }
 
 model Comment {
