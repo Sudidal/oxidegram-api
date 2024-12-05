@@ -3,10 +3,11 @@ import asyncHandler from "./utils/asyncHandler.js";
 import { Server } from "socket.io";
 import passport from "passport";
 import getProfileOfUser from "./middleware/getProfileOfUser.js";
+import getEnv from "./utils/getEnv.js";
 
 function startWSServer(httpServer) {
   const io = new Server(httpServer, {
-    cors: { origin: ["http://127.0.0.1:5500"] },
+    cors: { origin: [getEnv("WS_ALLOWED_ORIGIN")] },
     path: "/direct",
   });
 
@@ -25,37 +26,45 @@ function startWSServer(httpServer) {
   });
 
   io.on("connection", (socket) => {
-    console.log("connection");
+    console.log("WS connection");
 
-    socket.on("chat msg", (msg, contactId) => {
-      handleMessage(socket, msg, contactId);
+    socket.auth = { profileId: socket.request.profile.id };
+
+    socket.on("chat msg", (msg, contactId, recieverId) => {
+      handleMessage(io, socket, msg, contactId, recieverId);
     });
   });
 }
 
-async function handleMessage(socket, msg, contactId) {
+async function handleMessage(io, socket, msg, chatId, receiverId) {
   const [result, err] = await asyncHandler.prismaQuery(() =>
-    prisma.contact.update({
-      where: {
-        id: contactId,
-      },
+    prisma.message.create({
       data: {
+        content: msg,
+        sendDate: new Date().toISOString(),
+        sender: {
+          connect: { id: socket.request.profile.id },
+        },
         chat: {
-          update: {
-            messages: {
-              create: {
-                sender: {
-                  connect: { id: socket.request.profile.id },
-                },
-                content: msg,
-                sendDate: new Date().toISOString(),
-              },
-            },
-          },
+          connect: { id: chatId },
         },
       },
     })
   );
+
+  const targetSocket = await getSocketFromProfileId(io, receiverId);
+
+  io.to([targetSocket.id, socket.id]).emit("chat msg", result);
+}
+
+async function getSocketFromProfileId(io, profileId) {
+  const allSockets = await io.fetchSockets();
+
+  for (let i = 0; i < allSockets.length; i++) {
+    if (allSockets[i].auth.profileId === profileId) {
+      return allSockets[i];
+    }
+  }
 }
 
 export default startWSServer;
