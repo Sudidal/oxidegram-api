@@ -1,12 +1,12 @@
 import app from "./app.js";
 import http from "node:http";
 import getEnv from "./utils/getEnv.js";
-import startWSServer from "./wsServer.js";
+import wsServer from "./wsServer.js";
 
 const PORT = getEnv("PORT");
 
 const httpServer = http.createServer(app);
-startWSServer(httpServer);
+wsServer.start(httpServer);
 
 httpServer.listen(PORT, () => {
   console.log(
