@@ -1,7 +1,6 @@
 import prisma from "../utils/prisma.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import validateInput from "../middleware/validateInput.js";
-import validationChains from "../validation/validationChains.js";
+import prismaOptions from "../prismaOptions.js";
 import {
   requiresAccount,
   requiresProfile,
@@ -72,7 +71,11 @@ class ProfilesController {
           id: parseInt(req.params.profileId),
         },
         select: {
-          posts: Boolean(req.query.posts),
+          posts: Boolean(req.query.posts)
+            ? {
+                include: prismaOptions.postIncludeOptions,
+              }
+            : false,
           follows: Boolean(req.query.follows),
           followers: Boolean(req.query.followers),
           savedPosts: Boolean(req.query.savedPosts),

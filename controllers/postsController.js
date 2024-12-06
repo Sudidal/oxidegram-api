@@ -3,6 +3,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { requiresProfile } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
+import prismaOptions from "../prismaOptions.js";
 import multer from "multer";
 import remoteStorage from "../utils/remoteStorage.js";
 
@@ -32,15 +33,7 @@ class PostsController {
   getTop = async (req, res, next) => {
     const [posts, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findMany({
-        include: {
-          author: true,
-          _count: {
-            select: {
-              likers: true,
-              comments: true,
-            },
-          },
-        },
+        include: prismaOptions.postIncludeOptions,
         orderBy: {
           likers: {
             _count: "desc",

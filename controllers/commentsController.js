@@ -14,6 +14,9 @@ class CommentsController {
           where: {
             postId: parseInt(req.params.postId),
           },
+          include: {
+            author: true,
+          },
         }),
       (err) => {
         return next(err);
