@@ -10,6 +10,14 @@ class PrismaOptions {
       },
     },
   };
+
+  profileIncludeOptions = {
+    _count: {
+      select: {
+        followers: true,
+      },
+    },
+  };
 }
 
 const prismaOptions = new PrismaOptions();

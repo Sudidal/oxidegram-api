@@ -50,6 +50,25 @@ class ProfilesController {
 
     res.json({ profiles: result });
   };
+
+  search = async (req, res, next) => {
+    const [profiles, err] = await asyncHandler.prismaQuery(() =>
+      prisma.profile.findMany({
+        take: 10,
+        where: {
+          username: {
+            startsWith: req.query.query,
+          },
+        },
+        include: prismaOptions.profileIncludeOptions,
+      })
+    );
+    if (err) {
+      return next(err);
+    }
+
+    res.json({ profiles });
+  };
   async getOne(req, res, next) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findFirst({

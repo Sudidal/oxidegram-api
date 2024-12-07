@@ -5,10 +5,13 @@ const router = express.Router();
 
 router.get("/me", profilesController.getMe);
 router.get("/top", profilesController.getTop);
-router.get("/:profileId", profilesController.getOne);
+router.get("/search", profilesController.search);
 router.get("/details/:profileId", profilesController.getDetailsOfOne);
-router.post("/", profilesController.post);
+router.get("/:profileId", profilesController.getOne);
+
 router.post("/savepost/:postId", profilesController.savePost);
+router.post("/", profilesController.post);
+
 router.put("/follow/:profileId", profilesController.follow);
 
 export { router as profilesRouter };
