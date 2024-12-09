@@ -68,8 +68,7 @@ class ValidationChains {
     body("content")
       .isString()
       .trim()
-      .notEmpty()
-      .withMessage("Post content can not be empty"),
+      .withMessage("Post content must be a string"),
   ];
   commentValidationChain = () => [
     body("content")

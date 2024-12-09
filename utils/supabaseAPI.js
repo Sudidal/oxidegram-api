@@ -6,11 +6,13 @@ class SupabaseAPI {
   #client = createClient(getEnv("SUPABASE_URL"), getEnv("SUPABASE_KEY"));
   constructor() {}
 
-  uploadFile = async (bucket, file, name, contentType) => {
+  uploadFile = async (bucket, file, path, contentType) => {
     try {
-      const res = await this.#client.storage.from(bucket).upload(v4(), file, {
-        contentType: contentType,
-      });
+      const res = await this.#client.storage
+        .from(bucket)
+        .upload(path + v4(), file, {
+          contentType: contentType,
+        });
       if (res.error) {
         throw res;
       }

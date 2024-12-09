@@ -3,19 +3,27 @@ import supabaseApi from "./supabaseAPI.js";
 class RemoteStorage {
   constructor() {}
 
-  uploadPostImage = async (file) => {
-    return await this.uploadAndGetUrl(file, "posts");
+  uploadPostFile = async (file) => {
+    console.log(file);
+    let dirName = "images";
+    const fileMimeType = file.mimetype.split("/");
+    if (fileMimeType[0] === "image") {
+      dirName = "images";
+    } else if (fileMimeType[0] === "video") {
+      dirName = "videos";
+    }
+    return await this.uploadAndGetUrl(file, dirName, "posts");
   };
   uploadAvatarImage = async (file) => {
     return await this.uploadAndGetUrl(file, "avatars");
   };
 
-  uploadAndGetUrl = async (file, bucket) => {
+  uploadAndGetUrl = async (file, dir = "", bucket) => {
     try {
       const uploadRes = await supabaseApi.uploadFile(
         bucket,
         file.buffer,
-        file.originalname,
+        dir + "/" + file.originalname,
         file.mimetype
       );
       try {

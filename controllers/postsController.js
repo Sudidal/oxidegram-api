@@ -51,10 +51,10 @@ class PostsController {
 
   post = [
     requiresProfile,
-    upload.single("image"),
+    upload.single("file"),
     validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
-      const uploadRes = await remoteStorage.uploadPostImage(req.file);
+      const uploadRes = await remoteStorage.uploadPostFile(req.file);
       if (uploadRes instanceof Error) {
         return next(uploadRes);
       }
