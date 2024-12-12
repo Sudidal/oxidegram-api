@@ -21,9 +21,12 @@ class WSServer {
       const profile = await getProfileOfUser(req.user.id);
 
       if (!profile) {
-        return res
-          .status(403)
-          .json({ message: "No profile associated with this account" });
+        res.writeHead(403, { "content-type": "application/json" });
+        return res.write(
+          JSON.stringify({
+            message: "No profile associated with this account",
+          })
+        );
       } else {
         req.profile = profile;
         next();
