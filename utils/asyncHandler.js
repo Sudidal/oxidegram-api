@@ -6,7 +6,7 @@ class AsyncHandler {
       const result = await func();
       return [result, null];
     } catch (err) {
-      if (errCallback) errCallback(err);
+      if (errCallback) errCallback(new Error(err));
       else {
         console.error(err);
       }
