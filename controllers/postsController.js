@@ -52,8 +52,13 @@ class PostsController {
   post = [
     requiresProfile,
     upload.single("file"),
+    (req, res, next) => {
+      req.body.file = req.file;
+      next();
+    },
     validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
+      const fileType = req.file?.mimetype.split("/");
       const uploadRes = await remoteStorage.uploadPostFile(req.file);
       if (uploadRes instanceof Error) {
         return next(uploadRes);
@@ -67,6 +72,7 @@ class PostsController {
             publishDate: new Date().toISOString(),
             authorId: req.profile.id,
             imageUrl: uploadRes,
+            fileType: fileType[0] === "image" ? "IMAGE" : "VIDEO",
           },
         })
       );

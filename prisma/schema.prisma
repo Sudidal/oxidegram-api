@@ -76,6 +76,7 @@ model Post {
   id          Int       @id @default(autoincrement())
   content     String?
   imageUrl    String
+  fileType    FileType
   publishDate DateTime
   authorId    Int
   author      Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -114,4 +115,9 @@ enum NotificationType {
   ACTIVITY
   POST
   ALERT
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
 }
