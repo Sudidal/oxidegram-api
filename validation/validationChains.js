@@ -51,12 +51,23 @@ class ValidationChains {
         `Full name should be between 1 and ${validationVars.lastname_max} characters`
       ),
 
+    //  THESE FIELDS ARE NOT IN THE INITIAL REGISTERATION
+    //  KEPT HERE FOR FUTURE USE
+
+    // body("avatar.mimetype")
+    //   .matches(/^image\/*/)
+    //   .withMessage("Avatar File type should be an image"),
+    // body("avatar.size")
+    //   .isNumeric()
+    //   .custom((field) => {
+    //     return field < 6 * 1000 * 1000; // 6MB
+    //   })
+    //   .withMessage("Avatar file size should be less than 6MB"),
     // body("bio")
     //   .isLength({ min: 0, max: validationVars.bio_max })
     //   .withMessage(
     //     `Bio should not exceed ${validationVars.bio_max} characters`
     //   ),
-
     // body("gender")
     //   .isString()
     //   .matches(/^(MALE|FEMALE)$/)
@@ -69,6 +80,15 @@ class ValidationChains {
       .isString()
       .trim()
       .withMessage("Post content must be a string"),
+    body("file.mimetype")
+      .matches(/^[image|video]\/*/)
+      .withMessage("File type should be an image or a video"),
+    body("file.size")
+      .isNumeric()
+      .custom((field) => {
+        return field < 50 * 1000 * 1000; // 50MB
+      })
+      .withMessage("File size should be less than 50MB"),
   ];
   commentValidationChain = () => [
     body("content")
