@@ -1,14 +1,26 @@
 class PrismaOptions {
   constructor() {}
 
-  postIncludeOptions = {
-    author: true,
-    _count: {
-      select: {
-        likers: true,
-        comments: true,
+  postIncludeOptions = (profileId = -1) => {
+    return {
+      author: true,
+      likers: {
+        where: {
+          id: profileId,
+        },
       },
-    },
+      savers: {
+        where: {
+          id: profileId,
+        },
+      },
+      _count: {
+        select: {
+          likers: true,
+          comments: true,
+        },
+      },
+    };
   };
 
   profileIncludeOptions = {

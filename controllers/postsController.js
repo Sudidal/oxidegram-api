@@ -18,6 +18,7 @@ class PostsController {
   async getOne(req, res, next) {
     const [post, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findUnique({
+        include: prismaOptions.postIncludeOptions(req.profile?.id),
         where: {
           id: parseInt(req.params.postId),
         },
@@ -31,9 +32,22 @@ class PostsController {
   }
 
   getTop = async (req, res, next) => {
+    const whereClause = {};
+    if (req.query.images) {
+      whereClause.fileType = "IMAGE";
+    }
+    if (req.query.videos) {
+      if (whereClause.fileType) {
+        whereClause.fileType = {};
+      } else {
+        whereClause.fileType = "VIDEO";
+      }
+    }
+
     const [posts, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findMany({
-        include: prismaOptions.postIncludeOptions,
+        where: whereClause,
+        include: prismaOptions.postIncludeOptions(req.profile?.id),
         orderBy: {
           likers: {
             _count: "desc",
@@ -46,6 +60,23 @@ class PostsController {
     if (err) {
       return next(err);
     }
+
+    posts.forEach((post) => {
+      if (post.likers.length > 0) {
+        post.liked = true;
+      } else {
+        post.liked = false;
+      }
+
+      if (post.savers.length > 0) {
+        post.saved = true;
+      } else {
+        post.saved = false;
+      }
+
+      post.savers = post.likers = undefined;
+    });
+
     res.json({ posts });
   };
 
@@ -96,6 +127,105 @@ class PostsController {
         );
         if (err) console.error(err);
       }
+    },
+  ];
+
+  delete = [
+    requiresProfile,
+    async (req, res, next) => {
+      const [resutl, err] = await asyncHandler.prismaQuery(() =>
+        prisma.post.delete({
+          where: {
+            id: parseInt(req.params.postId),
+          },
+        })
+      );
+
+      if (err) {
+        return next(err);
+      }
+      res.json({ message: "Post deleted successfully" });
+    },
+  ];
+
+  save = [
+    requiresProfile,
+    async function (req, res, next) {
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.post.update({
+          where: {
+            id: parseInt(req.params.postId),
+          },
+          data: {
+            savers: {
+              connect: { id: req.profile.id },
+            },
+          },
+        })
+      );
+    },
+  ];
+  unsave = [
+    requiresProfile,
+    async function (req, res, next) {
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.post.update({
+          where: {
+            id: parseInt(req.params.postId),
+          },
+          data: {
+            savers: {
+              disconnect: { id: req.profile.id },
+            },
+          },
+        })
+      );
+    },
+  ];
+
+  like = [
+    requiresProfile,
+    async function (req, res, next) {
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.post.update({
+          where: {
+            id: parseInt(req.params.postId),
+          },
+          data: {
+            likers: {
+              connect: { id: req.profile.id },
+            },
+          },
+        })
+      );
+
+      if (err) {
+        return next(err);
+      }
+      res.json({ message: "Post liked successfully" });
+    },
+  ];
+
+  unlike = [
+    requiresProfile,
+    async function (req, res, next) {
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.post.update({
+          where: {
+            id: parseInt(req.params.postId),
+          },
+          data: {
+            likers: {
+              disconnect: { id: req.profile.id },
+            },
+          },
+        })
+      );
+
+      if (err) {
+        return next(err);
+      }
+      res.json({ message: "Post unliked successfully" });
     },
   ];
 }
