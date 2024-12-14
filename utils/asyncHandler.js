@@ -10,7 +10,7 @@ class AsyncHandler {
       else {
         console.error(err);
       }
-      return [null, err];
+      return [null, new Error(err)];
     }
   };
 
