@@ -133,7 +133,21 @@ class PostsController {
   delete = [
     requiresProfile,
     async (req, res, next) => {
-      const [resutl, err] = await asyncHandler.prismaQuery(() =>
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.post.findUnique({
+          where: {
+            id: parseInt(req.params.postId),
+          },
+        })
+      );
+
+      if (result?.authorId !== req.profile.id) {
+        return res
+          .status(403)
+          .json({ message: "You are not allowed to do this action" });
+      }
+
+      const [deleteResult, deleteErr] = await asyncHandler.prismaQuery(() =>
         prisma.post.delete({
           where: {
             id: parseInt(req.params.postId),
@@ -141,7 +155,7 @@ class PostsController {
         })
       );
 
-      if (err) {
+      if (deleteErr) {
         return next(err);
       }
       res.json({ message: "Post deleted successfully" });
