@@ -8,11 +8,11 @@ class LoginController {
   post(req, res, next) {
     passport.authenticate(
       "local",
-      { session: false },
+      { session: false, failureMessage: true },
       function (err, user, info) {
         if (err || !user) {
           console.log(info);
-          return res.status(401).json({ errors: info.message });
+          return res.status(401).json({ errors: info });
         }
         req.login(user, { session: false }, (err) => {
           if (err) {
