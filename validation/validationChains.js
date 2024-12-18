@@ -81,7 +81,7 @@ class ValidationChains {
       .trim()
       .withMessage("Post content must be a string"),
     body("file.mimetype")
-      .matches(/^[image|video]\/*/)
+      .matches(/^(image|video)\/*/)
       .withMessage("File type should be an image or a video"),
     body("file.size")
       .isNumeric()
