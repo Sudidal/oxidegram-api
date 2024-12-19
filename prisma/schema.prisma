@@ -5,7 +5,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["typedsql"]
+  previewFeatures = ["typedsql", "strictUndefinedChecks"]
 }
 
 model User {
@@ -21,6 +21,7 @@ model Profile {
   fullName      String                    @db.VarChar(100)
   avatarUrl     String?
   bio           String?                   @db.VarChar(150)
+  country       String?
   websiteUrl    String?
   gender        Gender?
   userId        Int                       @unique

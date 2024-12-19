@@ -4,6 +4,7 @@ class RemoteStorage {
   constructor() {}
 
   uploadPostFile = async (file) => {
+    if (!file) return;
     console.log(file);
     let dirName = "images";
     const fileMimeType = file.mimetype.split("/");

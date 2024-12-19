@@ -17,13 +17,9 @@ class ValidationChains {
       .isString()
       .notEmpty()
       .withMessage("Please enter a password"),
+  ];
 
-    // body("confirmPassword")
-    //   .isString()
-    //   .notEmpty()
-    //   .custom(customValidators.isPasswordsMatch)
-    //   .withMessage("Passwords do not match"),
-
+  profileValidationChain = (update) => [
     body("username")
       .isString()
       .trim()
@@ -37,7 +33,10 @@ class ValidationChains {
       .bail()
       .matches(/^[a-zA-Z0-9_][a-zA-Z0-9_.]/)
       .withMessage("Username must only contain (a-z) (A-Z) (_) (.)")
-      .custom(customValidators.isUsernameNotUsed)
+      .custom(async (value, { req }) => {
+        if (update) return true;
+        await customValidators.isUsernameNotUsed();
+      })
       .withMessage("Username already in use"),
 
     body("fullName")
@@ -48,31 +47,38 @@ class ValidationChains {
         max: validationVars.fullname_max,
       })
       .withMessage(
-        `Full name should be between 1 and ${validationVars.lastname_max} characters`
+        `Full name should be between 1 and ${validationVars.fullname_max} characters`
       ),
 
-    //  THESE FIELDS ARE NOT IN THE INITIAL REGISTERATION
-    //  KEPT HERE FOR FUTURE USE
-
-    // body("avatar.mimetype")
-    //   .matches(/^image\/*/)
-    //   .withMessage("Avatar File type should be an image"),
-    // body("avatar.size")
-    //   .isNumeric()
-    //   .custom((field) => {
-    //     return field < 6 * 1000 * 1000; // 6MB
-    //   })
-    //   .withMessage("Avatar file size should be less than 6MB"),
-    // body("bio")
-    //   .isLength({ min: 0, max: validationVars.bio_max })
-    //   .withMessage(
-    //     `Bio should not exceed ${validationVars.bio_max} characters`
-    //   ),
-    // body("gender")
-    //   .isString()
-    //   .matches(/^(MALE|FEMALE)$/)
-    //   .withMessage("Gender should be a MALE or FEMALE"),
-    // body("country").isString().trim().notEmpty(),
+    // Not required
+    body("bio")
+      .optional({ values: "falsy" })
+      .isLength({ min: 0, max: validationVars.bio_max })
+      .withMessage(
+        `Bio should not exceed ${validationVars.bio_max} characters`
+      ),
+    body("websiteUrl")
+      .optional({ values: "falsy" })
+      .isURL()
+      .trim()
+      .withMessage(`Website should be a valid URL`),
+    body("gender")
+      .optional({ values: "falsy" })
+      .isString()
+      .matches(/^(MALE|FEMALE)$/)
+      .withMessage("Gender should be a MALE or FEMALE"),
+    body("country").optional({ values: "falsy" }).isString().trim(),
+    body("file.mimetype")
+      .optional({ values: "falsy" })
+      .matches(/^image\/*/)
+      .withMessage("Avatar File type should be an image"),
+    body("file.size")
+      .optional({ values: "falsy" })
+      .isNumeric()
+      .custom((field) => {
+        return field < 6 * 1000 * 1000; // 6MB
+      })
+      .withMessage("Avatar file size should be less than 6MB"),
   ];
 
   postValidationChain = () => [

@@ -1,14 +1,15 @@
 import prisma from "../utils/prisma.js";
+import { Prisma } from "@prisma/client";
 import asyncHandler from "../utils/asyncHandler.js";
 import prismaOptions from "../prismaOptions.js";
-import {
-  requiresAccount,
-  requiresProfile,
-} from "../middleware/authentication.js";
+import { requiresProfile } from "../middleware/authentication.js";
+import validateInput from "../middleware/validateInput.js";
+import validationChains from "../validation/validationChains.js";
 import multer from "multer";
 import remoteStorage from "../utils/remoteStorage.js";
 
-const upload = multer({ dest: "uploads/" });
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class ProfilesController {
   constructor() {}
@@ -92,7 +93,7 @@ class ProfilesController {
         select: {
           posts: Boolean(req.query.posts)
             ? {
-                include: prismaOptions.postIncludeOptions,
+                include: prismaOptions.postIncludeOptions(),
               }
             : false,
           follows: Boolean(req.query.follows),
@@ -119,33 +120,6 @@ class ProfilesController {
 
     res.json({ profile: result });
   }
-
-  post = [
-    requiresAccount,
-    upload.single("avatar"),
-    // validateInput(validationChains.profileValidationChain()),
-    async (req, res, next) => {
-      const uploadRes = await remoteStorage.uploadAvatarImage(req.file);
-      if (uploadRes instanceof Error) {
-        return next(uploadRes);
-      }
-
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.create({
-          data: {
-            userId: req.user.id,
-            username: req.validatedData.username,
-            fullName: req.validatedData.fullName,
-          },
-        })
-      );
-      if (err) {
-        return next(err);
-      }
-
-      res.json({ message: "Profile created successfully" });
-    },
-  ];
 
   follow = [
     requiresProfile,
@@ -199,6 +173,49 @@ class ProfilesController {
         return next(err);
       }
       res.json({ message: "Saved post successfully" });
+    },
+  ];
+
+  put = [
+    requiresProfile,
+    upload.single("avatar"),
+    (req, res, next) => {
+      req.body.file = req.file;
+      next();
+    },
+    validateInput(validationChains.profileValidationChain(true)),
+    async (req, res, next) => {
+      let uploadRes = null;
+      if (req.body.file) {
+        uploadRes = await remoteStorage.uploadPostFile(req.body.file);
+      }
+      console.log(uploadRes);
+      if (uploadRes instanceof Error) {
+        return next(uploadRes);
+      }
+
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.profile.update({
+          where: {
+            id: req.profile.id,
+          },
+          data: {
+            username: req.validatedData.username,
+            fullName: req.validatedData.fullName,
+            bio: req.validatedData.bio ?? "",
+            country: req.validatedData.country ?? "",
+            gender: req.validatedData.gender ?? Prisma.skip,
+            websiteUrl: req.validatedData.websiteUrl ?? "",
+            avatarUrl: uploadRes ?? Prisma.skip,
+          },
+        })
+      );
+
+      if (err) {
+        return next(err);
+      }
+
+      res.json({ message: "Profile updated successfully" });
     },
   ];
 }
