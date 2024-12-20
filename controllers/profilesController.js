@@ -91,6 +91,7 @@ class ProfilesController {
           id: parseInt(req.params.profileId),
         },
         select: {
+          ...prismaOptions.profileIncludeOptions(req.profile?.id),
           posts: Boolean(req.query.posts)
             ? {
                 include: prismaOptions.postIncludeOptions(),
@@ -116,6 +117,11 @@ class ProfilesController {
     );
     if (err) {
       return next(err);
+    }
+
+    result.followed = false;
+    if (result.followers?.length > 0) {
+      result.followed = true;
     }
 
     res.json({ profile: result });
@@ -149,6 +155,34 @@ class ProfilesController {
       }
 
       res.json({ message: "Followed profile successfully" });
+    },
+  ];
+  unfollow = [
+    requiresProfile,
+    async (req, res, next) => {
+      const toFollowId = parseInt(req.params.profileId);
+      const followerId = req.profile.id;
+
+      const [result, err] = await asyncHandler.prismaQuery(() =>
+        prisma.profile.update({
+          where: {
+            id: followerId,
+          },
+          data: {
+            follows: {
+              disconnect: {
+                id: toFollowId,
+              },
+            },
+          },
+        })
+      );
+
+      if (err) {
+        return next(err);
+      }
+
+      res.json({ message: "Unfollowed profile successfully" });
     },
   ];
 

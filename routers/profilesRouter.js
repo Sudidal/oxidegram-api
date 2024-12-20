@@ -11,6 +11,7 @@ router.get("/:profileId", profilesController.getOne);
 
 router.post("/savepost/:postId", profilesController.savePost);
 router.post("/follow/:profileId", profilesController.follow);
+router.post("/unfollow/:profileId", profilesController.unfollow);
 
 router.put("/update", profilesController.put);
 
