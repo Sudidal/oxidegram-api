@@ -23,12 +23,19 @@ class PrismaOptions {
     };
   };
 
-  profileIncludeOptions = {
-    _count: {
-      select: {
-        followers: true,
+  profileIncludeOptions = (profileId = -1) => {
+    return {
+      followers: {
+        where: {
+          id: profileId,
+        },
       },
-    },
+      _count: {
+        select: {
+          followers: true,
+        },
+      },
+    };
   };
 }
 
