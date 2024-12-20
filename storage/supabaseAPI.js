@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { v4 } from "uuid";
-import getEnv from "./getEnv.js";
+import getEnv from "../utils/getEnv.js";
 
 class SupabaseAPI {
   #client = createClient(getEnv("SUPABASE_URL"), getEnv("SUPABASE_KEY"));
