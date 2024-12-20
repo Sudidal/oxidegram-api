@@ -3,9 +3,9 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { requiresProfile } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
-import prismaOptions from "../prismaOptions.js";
+import database from "../storage/database.js";
 import multer from "multer";
-import remoteStorage from "../utils/remoteStorage.js";
+import remoteStorage from "../storage/remoteStorage.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -18,7 +18,7 @@ class PostsController {
   async getOne(req, res, next) {
     const [post, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findUnique({
-        include: prismaOptions.postIncludeOptions(req.profile?.id),
+        include: database.postIncludeOptions(req.profile?.id),
         where: {
           id: parseInt(req.params.postId),
         },
@@ -47,7 +47,7 @@ class PostsController {
     const [posts, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findMany({
         where: whereClause,
-        include: prismaOptions.postIncludeOptions(req.profile?.id),
+        include: database.postIncludeOptions(req.profile?.id),
         orderBy: {
           likers: {
             _count: "desc",
@@ -159,41 +159,6 @@ class PostsController {
         return next(err);
       }
       res.json({ message: "Post deleted successfully" });
-    },
-  ];
-
-  save = [
-    requiresProfile,
-    async function (req, res, next) {
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.post.update({
-          where: {
-            id: parseInt(req.params.postId),
-          },
-          data: {
-            savers: {
-              connect: { id: req.profile.id },
-            },
-          },
-        })
-      );
-    },
-  ];
-  unsave = [
-    requiresProfile,
-    async function (req, res, next) {
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.post.update({
-          where: {
-            id: parseInt(req.params.postId),
-          },
-          data: {
-            savers: {
-              disconnect: { id: req.profile.id },
-            },
-          },
-        })
-      );
     },
   ];
 
