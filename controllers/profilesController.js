@@ -14,7 +14,38 @@ const upload = multer({ storage: storage });
 class ProfilesController {
   constructor() {}
 
-  #limit = 10;
+  #limit = 20;
+
+  get = async (req, res, next) => {
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.profile.findMany({
+        include: prismaOptions.profileIncludeOptions(req.profile?.id),
+        take: parseInt(req.query.limit) | this.#limit,
+        skip: parseInt(req.query.offset) | 0,
+
+        orderBy: {
+          followers: req.query.sortByFollowers
+            ? {
+                _count: req.query.order ?? Prisma.skip,
+              }
+            : Prisma.skip,
+        },
+
+        where: {
+          username: {
+            id: parseInt(req.params.profileId) ?? Prisma.skip,
+            startsWith: req.query.searchQuery ?? Prisma.skip,
+          },
+        },
+      })
+    );
+
+    if (err) {
+      return next(err);
+    }
+
+    res.json({ profiles: result });
+  };
 
   getMe = [
     requiresProfile,
@@ -34,56 +65,6 @@ class ProfilesController {
     },
   ];
 
-  getTop = async (req, res, next) => {
-    const [result, err] = await asyncHandler.prismaQuery(() =>
-      prisma.profile.findMany({
-        take: parseInt(req.query.limit) | this.#limit,
-        orderBy: {
-          followers: {
-            _count: "desc",
-          },
-        },
-      })
-    );
-    if (err) {
-      return next(err);
-    }
-
-    res.json({ profiles: result });
-  };
-
-  search = async (req, res, next) => {
-    const [profiles, err] = await asyncHandler.prismaQuery(() =>
-      prisma.profile.findMany({
-        take: 10,
-        where: {
-          username: {
-            startsWith: req.query.query,
-          },
-        },
-        include: prismaOptions.profileIncludeOptions,
-      })
-    );
-    if (err) {
-      return next(err);
-    }
-
-    res.json({ profiles });
-  };
-  async getOne(req, res, next) {
-    const [result, err] = await asyncHandler.prismaQuery(() =>
-      prisma.profile.findFirst({
-        where: {
-          id: parseInt(req.params.profileId),
-        },
-      })
-    );
-    if (err) {
-      return next(err);
-    }
-
-    res.json({ profile: result });
-  }
   async getDetailsOfOne(req, res, next) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findFirst({
@@ -256,3 +237,8 @@ class ProfilesController {
 
 const profilesController = new ProfilesController();
 export default profilesController;
+
+// Earlier in prisma undefined meant "do nothing"
+// Now it means "someting is wrong, throw"
+// Now prisma.skip means "do nothing"
+// This is more strict and better to predict
