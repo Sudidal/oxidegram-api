@@ -1,12 +1,9 @@
-import prisma from "../utils/prisma.js";
-import { Prisma } from "@prisma/client";
-import asyncHandler from "../utils/asyncHandler.js";
-import prismaOptions from "../prismaOptions.js";
 import { requiresProfile } from "../middleware/authentication.js";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
 import multer from "multer";
-import remoteStorage from "../utils/remoteStorage.js";
+import remoteStorage from "../storage/remoteStorage.js";
+import database from "../storage/database.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -14,30 +11,17 @@ const upload = multer({ storage: storage });
 class ProfilesController {
   constructor() {}
 
-  #limit = 20;
+  async getMany(req, res, next) {
+    const queryOptions = {
+      take: parseInt(req.query.limit),
+      skip: parseInt(req.query.skip),
+      sortByFollowers: req.query.sortByFollowers,
+      order: "desc",
+    };
 
-  get = async (req, res, next) => {
-    const [result, err] = await asyncHandler.prismaQuery(() =>
-      prisma.profile.findMany({
-        include: prismaOptions.profileIncludeOptions(req.profile?.id),
-        take: parseInt(req.query.limit) | this.#limit,
-        skip: parseInt(req.query.offset) | 0,
-
-        orderBy: {
-          followers: req.query.sortByFollowers
-            ? {
-                _count: req.query.order ?? Prisma.skip,
-              }
-            : Prisma.skip,
-        },
-
-        where: {
-          username: {
-            id: parseInt(req.params.profileId) ?? Prisma.skip,
-            startsWith: req.query.searchQuery ?? Prisma.skip,
-          },
-        },
-      })
+    const [result, err] = await database.getProfiles(
+      req.profile.id,
+      queryOptions
     );
 
     if (err) {
@@ -45,18 +29,39 @@ class ProfilesController {
     }
 
     res.json({ profiles: result });
-  };
+  }
+
+  async getOne(req, res, next) {
+    const queryOptions = {
+      profileId: parseInt(req.params.profileId),
+      singleValue: true,
+    };
+
+    const [result, err] = await database.getProfiles(
+      req.profile.id,
+      queryOptions
+    );
+
+    if (err) {
+      return next(err);
+    }
+
+    res.json({ profile: result });
+  }
 
   getMe = [
     requiresProfile,
     async (req, res, next) => {
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.findUnique({
-          where: {
-            id: req.profile.id,
-          },
-        })
+      const queryOptions = {
+        profileId: req.profile.id,
+        singleValue: true,
+      };
+
+      const [result, err] = await database.getProfiles(
+        req.profile.id,
+        queryOptions
       );
+
       if (err) {
         return next(err);
       }
@@ -65,44 +70,43 @@ class ProfilesController {
     },
   ];
 
-  async getDetailsOfOne(req, res, next) {
-    const [result, err] = await asyncHandler.prismaQuery(() =>
-      prisma.profile.findFirst({
-        where: {
-          id: parseInt(req.params.profileId),
-        },
-        select: {
-          ...prismaOptions.profileIncludeOptions(req.profile?.id),
-          posts: Boolean(req.query.posts)
-            ? {
-                include: prismaOptions.postIncludeOptions(),
-              }
-            : false,
-          follows: Boolean(req.query.follows),
-          followers: Boolean(req.query.followers),
-          savedPosts: Boolean(req.query.savedPosts),
-          contacts: Boolean(req.query.contacts)
-            ? {
-                include: {
-                  contacted: true,
-                  chat: {
-                    include: {
-                      messages: true,
-                    },
-                  },
-                },
-              }
-            : false,
-        },
-      })
+  async search(req, res, next) {
+    console.log(req.query.searchQuery);
+    const queryOptions = {
+      take: parseInt(req.query.take),
+      skip: parseInt(req.query.skip),
+      searchQuery: req.query.searchQuery,
+    };
+
+    const [result, err] = await database.getProfiles(
+      req.profile.id,
+      queryOptions
     );
+
     if (err) {
       return next(err);
     }
 
-    result.followed = false;
-    if (result.followers?.length > 0) {
-      result.followed = true;
+    res.json({ profiles: result });
+  }
+
+  async getDetailsOfOne(req, res, next) {
+    const queryOptions = {
+      follows: Boolean(req.query.follows),
+      followers: Boolean(req.query.followers),
+      posts: Boolean(req.query.posts),
+      savedPosts: Boolean(req.query.savedPosts),
+      contacts: Boolean(req.query.contacts),
+    };
+
+    const [result, err] = await database.getDetailsOfProfile(
+      req.profile.id,
+      parseInt(req.params.profileId),
+      queryOptions
+    );
+
+    if (err) {
+      return next(err);
     }
 
     res.json({ profile: result });
@@ -111,24 +115,13 @@ class ProfilesController {
   follow = [
     requiresProfile,
     async (req, res, next) => {
-      const toFollowId = parseInt(req.params.profileId);
-      const followerId = req.profile.id;
+      const queryOptions = {
+        followId: parseInt(req.params.profileId),
+      };
 
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.update({
-          where: {
-            id: followerId,
-          },
-          data: {
-            follows: {
-              set: [
-                {
-                  id: toFollowId,
-                },
-              ],
-            },
-          },
-        })
+      const [result, err] = await database.updateProfile(
+        req.profile.id,
+        queryOptions
       );
 
       if (err) {
@@ -141,22 +134,13 @@ class ProfilesController {
   unfollow = [
     requiresProfile,
     async (req, res, next) => {
-      const toFollowId = parseInt(req.params.profileId);
-      const followerId = req.profile.id;
+      const queryOptions = {
+        unfollowId: parseInt(req.params.profileId),
+      };
 
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.update({
-          where: {
-            id: followerId,
-          },
-          data: {
-            follows: {
-              disconnect: {
-                id: toFollowId,
-              },
-            },
-          },
-        })
+      const [result, err] = await database.updateProfile(
+        req.profile.id,
+        queryOptions
       );
 
       if (err) {
@@ -170,24 +154,40 @@ class ProfilesController {
   savePost = [
     requiresProfile,
     async (req, res, next) => {
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.update({
-          where: {
-            id: parseInt(req.profile.id),
-          },
-          data: {
-            savedPosts: {
-              connect: {
-                id: parseInt(req.params.postId),
-              },
-            },
-          },
-        })
+      console.log("got it");
+      const queryOptions = {
+        savePostId: parseInt(req.params.postId),
+      };
+
+      const [result, err] = await database.updateProfile(
+        req.profile.id,
+        queryOptions
       );
+
       if (err) {
         return next(err);
       }
+
       res.json({ message: "Saved post successfully" });
+    },
+  ];
+  unsavePost = [
+    requiresProfile,
+    async (req, res, next) => {
+      const queryOptions = {
+        unsavePostId: parseInt(req.params.postId),
+      };
+
+      const [result, err] = await database.updateProfile(
+        req.profile.id,
+        queryOptions
+      );
+
+      if (err) {
+        return next(err);
+      }
+
+      res.json({ message: "Unsaved post successfully" });
     },
   ];
 
@@ -209,21 +209,19 @@ class ProfilesController {
         return next(uploadRes);
       }
 
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.update({
-          where: {
-            id: req.profile.id,
-          },
-          data: {
-            username: req.validatedData.username,
-            fullName: req.validatedData.fullName,
-            bio: req.validatedData.bio ?? "",
-            country: req.validatedData.country ?? "",
-            gender: req.validatedData.gender ?? Prisma.skip,
-            websiteUrl: req.validatedData.websiteUrl ?? "",
-            avatarUrl: uploadRes ?? Prisma.skip,
-          },
-        })
+      const queryOptions = {
+        username: req.validatedData.username,
+        fullName: req.validatedData.fullName,
+        bio: req.validatedData.bio ?? "",
+        country: req.validatedData.country ?? "",
+        gender: req.validatedData.gender,
+        websiteUrl: req.validatedData.websiteUrl ?? "",
+        avatarUrl: uploadRes,
+      };
+
+      const [result, err] = await database.updateProfile(
+        req.profile.id,
+        queryOptions
       );
 
       if (err) {
@@ -237,8 +235,3 @@ class ProfilesController {
 
 const profilesController = new ProfilesController();
 export default profilesController;
-
-// Earlier in prisma undefined meant "do nothing"
-// Now it means "someting is wrong, throw"
-// Now prisma.skip means "do nothing"
-// This is more strict and better to predict
