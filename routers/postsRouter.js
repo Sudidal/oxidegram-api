@@ -4,17 +4,15 @@ import commentsController from "../controllers/commentsController.js";
 
 const router = express.Router();
 
-router.get("/top", postsController.getTop);
 router.get("/:postId", postsController.getOne);
+router.get("/:postId/comments", commentsController.getFromPost);
+router.get("/", postsController.getMany);
 
 router.post("/:postId/like", postsController.like);
 router.post("/:postId/unlike", postsController.unlike);
-
-router.get("/:postId/comments", commentsController.getFromPost);
 router.post("/:postId/comments", commentsController.post);
+router.post("/", postsController.post);
 
 router.delete("/:postId", postsController.delete);
-
-router.post("/", postsController.post);
 
 export { router as postsRouter };
