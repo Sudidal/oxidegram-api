@@ -132,6 +132,33 @@ class Database {
       })
     );
 
+    result?.posts?.forEach((post) => {
+      post.liked = false;
+      post.saved = false;
+
+      if (post.likers.length > 0) {
+        post.liked = true;
+      }
+      if (post.savers.length > 0) {
+        post.saved = true;
+      }
+
+      post.savers = post.likers = undefined;
+    });
+    result?.savedPosts?.forEach((post) => {
+      post.liked = false;
+      post.saved = false;
+
+      if (post.likers.length > 0) {
+        post.liked = true;
+      }
+      if (post.savers.length > 0) {
+        post.saved = true;
+      }
+
+      post.savers = post.likers = undefined;
+    });
+
     return [result, err];
   }
 
