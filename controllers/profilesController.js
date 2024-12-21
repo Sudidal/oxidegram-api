@@ -112,6 +112,47 @@ class ProfilesController {
     res.json({ profile: result });
   }
 
+  put = [
+    requiresProfile,
+    upload.single("avatar"),
+    (req, res, next) => {
+      req.body.file = req.file;
+      next();
+    },
+    validateInput(validationChains.profileValidationChain(true)),
+    async (req, res, next) => {
+      let uploadRes = null;
+      if (req.body.file) {
+        uploadRes = await remoteStorage.uploadPostFile(req.body.file);
+      }
+      console.log(uploadRes);
+      if (uploadRes instanceof Error) {
+        return next(uploadRes);
+      }
+
+      const queryOptions = {
+        username: req.validatedData.username,
+        fullName: req.validatedData.fullName,
+        bio: req.validatedData.bio ?? "",
+        country: req.validatedData.country ?? "",
+        gender: req.validatedData.gender,
+        websiteUrl: req.validatedData.websiteUrl ?? "",
+        avatarUrl: uploadRes,
+      };
+
+      const [result, err] = await database.updateProfile(
+        req.profile.id,
+        queryOptions
+      );
+
+      if (err) {
+        return next(err);
+      }
+
+      res.json({ message: "Profile updated successfully" });
+    },
+  ];
+
   follow = [
     requiresProfile,
     async (req, res, next) => {
@@ -188,47 +229,6 @@ class ProfilesController {
       }
 
       res.json({ message: "Unsaved post successfully" });
-    },
-  ];
-
-  put = [
-    requiresProfile,
-    upload.single("avatar"),
-    (req, res, next) => {
-      req.body.file = req.file;
-      next();
-    },
-    validateInput(validationChains.profileValidationChain(true)),
-    async (req, res, next) => {
-      let uploadRes = null;
-      if (req.body.file) {
-        uploadRes = await remoteStorage.uploadPostFile(req.body.file);
-      }
-      console.log(uploadRes);
-      if (uploadRes instanceof Error) {
-        return next(uploadRes);
-      }
-
-      const queryOptions = {
-        username: req.validatedData.username,
-        fullName: req.validatedData.fullName,
-        bio: req.validatedData.bio ?? "",
-        country: req.validatedData.country ?? "",
-        gender: req.validatedData.gender,
-        websiteUrl: req.validatedData.websiteUrl ?? "",
-        avatarUrl: uploadRes,
-      };
-
-      const [result, err] = await database.updateProfile(
-        req.profile.id,
-        queryOptions
-      );
-
-      if (err) {
-        return next(err);
-      }
-
-      res.json({ message: "Profile updated successfully" });
     },
   ];
 }
