@@ -1,5 +1,4 @@
-import prisma from "../utils/prisma.js";
-import asyncHandler from "../utils/asyncHandler.js";
+import database from "../storage/database.js";
 import { requiresProfile } from "../middleware/authentication.js";
 import { contactExist } from "../utils/contactExist.js";
 
@@ -9,20 +8,9 @@ class ContactsController {
   getContacts = [
     requiresProfile,
     async (req, res, next) => {
-      const [data, err] = await asyncHandler.prismaQuery(() =>
-        prisma.profile.findFirst({
-          where: {
-            id: req.profile.id,
-          },
-          select: {
-            contacts: {
-              select: {
-                contacted: true,
-              },
-            },
-          },
-        })
-      );
+      const [data, err] = await database.getContacts({
+        profileId: req.profile.id,
+      });
 
       if (err) {
         return next(err);
@@ -34,41 +22,23 @@ class ContactsController {
   addContact = [
     requiresProfile,
     async (req, res, next) => {
-      const profileId = req.profile.id;
-      const contactedId = parseInt(req.params.profileId);
+      const queryOptions = {
+        profileId: req.profile.id,
+        contactedId: parseInt(req.params.profileId),
+      };
 
-      if (await contactExist(profileId, contactedId)) {
+      if (
+        await contactExist(queryOptions.profileId, queryOptions.contactedId)
+      ) {
         return res.json({ message: "Contact already exist" });
       }
 
-      const [chatResult, chatErr] = await asyncHandler.prismaQuery(() =>
-        prisma.chat.create()
-      );
-
-      if (chatErr) {
-        return next(chatErr);
-      }
-
-      const [result, err] = await asyncHandler.prismaQuery(() =>
-        prisma.contact.createMany({
-          data: [
-            {
-              profileId: profileId,
-              contactedId: contactedId,
-              chatId: chatResult.id,
-            },
-            {
-              profileId: contactedId,
-              contactedId: profileId,
-              chatId: chatResult.id,
-            },
-          ],
-        })
-      );
+      const [result, err] = await database.createContact(queryOptions);
 
       if (err) {
         return next(err);
       }
+
       res.json({ message: "Added contact successfully" });
     },
   ];

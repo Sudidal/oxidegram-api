@@ -7,6 +7,7 @@ class Database {
 
   #profilesLimit = 20;
   #postsLimit = 20;
+  #commentsLimit = 20;
 
   postIncludeOptions = (profileId = -1) => {
     return {
@@ -29,6 +30,25 @@ class Database {
       },
     };
   };
+
+  async createAccount(options) {
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.user.create({
+        data: {
+          email: options.email,
+          password: options.password,
+          profile: {
+            create: {
+              username: options.username,
+              fullName: options.fullName,
+            },
+          },
+        },
+      })
+    );
+
+    return [result, err];
+  }
 
   async getProfiles(requestorProfileId, options) {
     const additionalWhere = {};
@@ -243,6 +263,81 @@ class Database {
     );
 
     return [result, err];
+  }
+
+  async createComment(postId, options) {
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.comment.create({
+        data: {
+          content: options.content ?? Prisma.skip,
+          publishDate: options.publishDate ?? Prisma.skip,
+          postId: postId,
+          authorId: options.authorId ?? Prisma.skip,
+        },
+      })
+    );
+
+    return [result, err];
+  }
+
+  async getComments(requestorProfileId, options) {
+    const whereClause = {};
+    if (options.postId) {
+      whereClause.postId = options.postId;
+    }
+
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.comment.findMany({
+        take: options.take || this.#commentsLimit,
+        skip: options.offset || 0,
+        include: {
+          author: true,
+        },
+        where: { ...whereClause },
+      })
+    );
+
+    return [result, err];
+  }
+
+  async createContact(options) {
+    const [chatResult, chatErr] = await asyncHandler.prismaQuery(() =>
+      prisma.chat.create({})
+    );
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.contact.createMany({
+        data: [
+          {
+            profileId: options.profileId,
+            contactedId: options.contactedId,
+            chatId: chatResult.id,
+          },
+          {
+            profileId: options.contactedId,
+            contactedId: options.profileId,
+            chatId: chatResult.id,
+          },
+        ],
+      })
+    );
+
+    return [result, err];
+  }
+
+  async getContacts(options) {
+    const whereClause = {};
+    if (options.profileId) {
+      whereClause.profileId = options.profileId;
+    }
+
+    const [result, err] = await asyncHandler.prismaQuery(() =>
+      prisma.contact.findMany({
+        where: { ...whereClause },
+        include: {
+          contacted: true,
+        },
+      })
+    );
   }
 
   async createNotification(options) {

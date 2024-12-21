@@ -1,4 +1,4 @@
-import prisma from "../utils/prisma.js";
+import database from "../storage/database.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import bcrypt from "bcryptjs";
 import validateInput from "../middleware/validateInput.js";
@@ -14,29 +14,25 @@ class RegisterController {
       const [hashedPassword, hashErr] = await asyncHandler.handle(() =>
         bcrypt.hash(req.validatedData.password, 10)
       );
+
       if (hashErr) {
         return next(hashErr);
       }
-      const [result, err] = await asyncHandler.prismaQuery(
-        () =>
-          prisma.user.create({
-            data: {
-              email: req.validatedData.email,
-              password: hashedPassword,
-              profile: {
-                create: {
-                  username: req.validatedData.username,
-                  fullName: req.validatedData.fullName,
-                },
-              },
-            },
-          }),
-        next
-      );
 
-      if (!err) {
-        res.json({ message: "Created account and profile successfully" });
+      const queryOptions = {
+        email: req.validatedData.email,
+        password: hashedPassword,
+        username: req.validatedData.username,
+        fullName: req.validatedData.fullName,
+      };
+
+      const [result, err] = await database.createAccount(queryOptions);
+
+      if (err) {
+        return next(err);
       }
+
+      res.json({ message: "Created account and profile successfully" });
     },
   ];
 }
