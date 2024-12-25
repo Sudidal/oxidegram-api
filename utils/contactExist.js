@@ -11,10 +11,10 @@ async function contactExist(profileId, contactedId) {
     })
   );
 
-  if (result?.length > 0) {
-    return true;
+  if (!result) {
+    return false;
   }
-  return false;
+  return true;
 }
 
 export { contactExist };

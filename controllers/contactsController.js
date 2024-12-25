@@ -27,9 +27,14 @@ class ContactsController {
         contactedId: parseInt(req.params.profileId),
       };
 
-      if (
-        await contactExist(queryOptions.profileId, queryOptions.contactedId)
-      ) {
+      const exists = await contactExist(
+        queryOptions.profileId,
+        queryOptions.contactedId
+      );
+
+      console.log(exists);
+
+      if (exists) {
         return res.json({ message: "Contact already exist" });
       }
 
