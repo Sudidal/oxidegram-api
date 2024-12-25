@@ -11,7 +11,12 @@ const app = express();
 
 configurePassport();
 
-app.use(cors({ origin: getEnv("ALLOWED_ORIGIN") }));
+app.use(
+  cors({
+    origin: [getEnv("ALLOWED_ORIGIN"), "https://admin.socket.io"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
