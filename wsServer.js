@@ -60,13 +60,13 @@ class WSServer {
       })
     );
 
-    const targetSocket = await this.#getSocketFromProfileId(receiverId);
-
-    if (msgErr || !targetSocket) {
+    if (msgErr) {
       return;
     }
 
-    this.#io.to([targetSocket.id, socket.id]).emit("chat msg", result);
+    const targetSocket = await this.#getSocketFromProfileId(receiverId);
+
+    this.#io.to([targetSocket?.id, socket.id]).emit("chat msg", result);
   }
 
   async #getSocketFromProfileId(profileId) {
