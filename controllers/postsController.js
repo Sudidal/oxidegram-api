@@ -31,7 +31,8 @@ class PostsController {
 
   async getOne(req, res, next) {
     const queryOptions = {
-      postId: req.params.postId,
+      postId: parseInt(req.params.postId),
+      singleValue: true,
     };
 
     const [result, err] = await database.getPosts(req.profile.id, queryOptions);

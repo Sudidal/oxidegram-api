@@ -208,7 +208,7 @@ class Database {
       else if (options.filter === "videos") whereClause.fileType = "VIDEO";
     }
 
-    const [result, err] = await asyncHandler.prismaQuery(() =>
+    let [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findMany({
         take: options.limit || this.#postsLimit,
         skip: options.offset || 0,
@@ -240,6 +240,12 @@ class Database {
 
       post.savers = post.likers = undefined;
     });
+
+    if (options.singleValue) {
+      if (Array.isArray(result)) {
+        result = result[0];
+      }
+    }
 
     return [result, err];
   }
