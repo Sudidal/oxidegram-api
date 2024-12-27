@@ -116,6 +116,13 @@ class Database {
           savedPosts: options.savedPosts
             ? { include: this.postIncludeOptions(requestorProfileId) }
             : false,
+          notifications: options.notifications
+            ? {
+                include: {
+                  notification: true,
+                },
+              }
+            : false,
           contacts: options.contacts
             ? {
                 include: {

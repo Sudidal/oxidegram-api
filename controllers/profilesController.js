@@ -102,6 +102,7 @@ class ProfilesController {
       posts: Boolean(req.query.posts),
       savedPosts: allowSensitive ? Boolean(req.query.savedPosts) : false,
       contacts: allowSensitive? Boolean(req.query.contacts) : false,
+      notifications: allowSensitive ? Boolean(req.query.notifications) : false,
     };
 
     const [result, err] = await database.getDetailsOfProfile(
