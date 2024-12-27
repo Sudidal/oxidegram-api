@@ -91,12 +91,17 @@ class ProfilesController {
   }
 
   async getDetailsOfOne(req, res, next) {
+    let allowSensitive = false;
+    if (req.profile.id === parseInt(req.params.profileId)) {
+      allowSensitive = true;
+    }
+
     const queryOptions = {
       follows: Boolean(req.query.follows),
       followers: Boolean(req.query.followers),
       posts: Boolean(req.query.posts),
-      savedPosts: Boolean(req.query.savedPosts),
-      contacts: Boolean(req.query.contacts),
+      savedPosts: allowSensitive ? Boolean(req.query.savedPosts) : false,
+      contacts: allowSensitive? Boolean(req.query.contacts) : false,
     };
 
     const [result, err] = await database.getDetailsOfProfile(
