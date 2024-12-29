@@ -85,7 +85,12 @@ class ValidationChains {
     body("content")
       .isString()
       .trim()
-      .withMessage("Post content must be a string"),
+      .withMessage("Post description must be a string")
+      .bail()
+      .isLength({ min: 0, max: validationVars.post_content_max })
+      .withMessage(
+        `Post description should not exceed ${validationVars.post_content_max} characters`
+      ),
     body("file.mimetype")
       .matches(/^(image|video)\/*/)
       .withMessage("File type should be an image or a video"),
