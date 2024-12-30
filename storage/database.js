@@ -5,9 +5,9 @@ import prisma from "../utils/prisma.js";
 class Database {
   constructor() {}
 
-  #profilesLimit = 20;
-  #postsLimit = 20;
-  #commentsLimit = 20;
+  #profilesLimit = 10;
+  #postsLimit = 7;
+  #commentsLimit = 15;
 
   postIncludeOptions = (profileId = -1) => {
     return {
@@ -217,9 +217,6 @@ class Database {
 
     let [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findMany({
-        take: options.limit || this.#postsLimit,
-        skip: options.offset || 0,
-
         where: { ...whereClause },
 
         orderBy: {
@@ -229,6 +226,8 @@ class Database {
               }
             : Prisma.skip,
         },
+        skip: options.offset || 0,
+        take: options.limit || this.#postsLimit,
 
         include: this.postIncludeOptions(requestorProfileId),
       })
