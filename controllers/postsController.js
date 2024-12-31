@@ -1,4 +1,4 @@
-import { requiresProfile } from "../middleware/authentication.js";
+import { requiresAccount } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
 import database from "../storage/database.js";
@@ -45,7 +45,7 @@ class PostsController {
   }
 
   post = [
-    requiresProfile,
+    requiresAccount,
     upload.single("file"),
     (req, res, next) => {
       req.body.file = req.file;
@@ -104,7 +104,7 @@ class PostsController {
   ];
 
   delete = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const [result, err] = await database.getPosts(req.profile.id, {
         postId: parseInt(req.params.postId),
@@ -130,7 +130,7 @@ class PostsController {
   ];
 
   like = [
-    requiresProfile,
+    requiresAccount,
     async function (req, res, next) {
       const queryOptions = {
         likerId: req.profile.id,
@@ -147,7 +147,7 @@ class PostsController {
     },
   ];
   unlike = [
-    requiresProfile,
+    requiresAccount,
     async function (req, res, next) {
       const queryOptions = {
         unlikerId: req.profile.id,

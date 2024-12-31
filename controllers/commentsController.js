@@ -1,7 +1,7 @@
 import database from "../storage/database.js";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
-import { requiresProfile } from "../middleware/authentication.js";
+import { requiresAccount } from "../middleware/authentication.js";
 
 class CommentsController {
   constructor() {}
@@ -22,7 +22,7 @@ class CommentsController {
   }
 
   post = [
-    requiresProfile,
+    requiresAccount,
     validateInput(validationChains.commentValidationChain()),
     async (req, res, next) => {
       const queryOptions = {

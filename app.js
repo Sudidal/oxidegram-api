@@ -22,8 +22,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   passport.authenticate("jwt", { session: false }, async (err, user, info) => {
-    req.user = user;
-    req.profile = await getProfileOfUser(user?.id);
+    req.user = user || {};
+    req.profile = await getProfileOfUser(user?.id) || {};
     next();
   })(req, res, next);
 });

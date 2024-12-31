@@ -14,12 +14,12 @@ class Database {
       author: true,
       likers: {
         where: {
-          id: profileId,
+          id: profileId ?? -1,
         },
       },
       savers: {
         where: {
-          id: profileId,
+          id: profileId ?? -1,
         },
       },
       _count: {
@@ -69,7 +69,7 @@ class Database {
         include: {
           followers: {
             where: {
-              id: requestorProfileId,
+              id: requestorProfileId ?? -1,
             },
           },
         },
@@ -77,7 +77,7 @@ class Database {
         orderBy: {
           followers: options.sortByFollowers
             ? {
-                _count: options.order ?? Prisma.skip,
+                _count: options.order ?? -1,
               }
             : Prisma.skip,
         },

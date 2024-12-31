@@ -1,4 +1,4 @@
-import { requiresProfile } from "../middleware/authentication.js";
+import { requiresAccount } from "../middleware/authentication.js";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
 import multer from "multer";
@@ -32,8 +32,14 @@ class ProfilesController {
   }
 
   async getOne(req, res, next) {
+    const profileId = parseInt(req.params.profileId);
+
+    if (isNaN(profileId)) {
+      return res.sendStatus(400);
+    }
+
     const queryOptions = {
-      profileId: parseInt(req.params.profileId),
+      profileId: profileId,
       singleValue: true,
     };
 
@@ -50,7 +56,7 @@ class ProfilesController {
   }
 
   getMe = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const queryOptions = {
         profileId: req.profile.id,
@@ -91,8 +97,14 @@ class ProfilesController {
   }
 
   async getDetailsOfOne(req, res, next) {
+    const profileId = parseInt(req.params.profileId);
+
+    if (isNaN(profileId)) {
+      return res.sendStatus(400);
+    }
+
     let allowSensitive = false;
-    if (req.profile.id === parseInt(req.params.profileId)) {
+    if (req.profile.id === profileId) {
       allowSensitive = true;
     }
 
@@ -101,13 +113,13 @@ class ProfilesController {
       followers: Boolean(req.query.followers),
       posts: Boolean(req.query.posts),
       savedPosts: allowSensitive ? Boolean(req.query.savedPosts) : false,
-      contacts: allowSensitive? Boolean(req.query.contacts) : false,
+      contacts: allowSensitive ? Boolean(req.query.contacts) : false,
       notifications: allowSensitive ? Boolean(req.query.notifications) : false,
     };
 
     const [result, err] = await database.getDetailsOfProfile(
       req.profile.id,
-      parseInt(req.params.profileId),
+      profileId,
       queryOptions
     );
 
@@ -119,7 +131,7 @@ class ProfilesController {
   }
 
   put = [
-    requiresProfile,
+    requiresAccount,
     upload.single("avatar"),
     (req, res, next) => {
       req.body.file = req.file;
@@ -160,7 +172,7 @@ class ProfilesController {
   ];
 
   follow = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const queryOptions = {
         followId: parseInt(req.params.profileId),
@@ -179,7 +191,7 @@ class ProfilesController {
     },
   ];
   unfollow = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const queryOptions = {
         unfollowId: parseInt(req.params.profileId),
@@ -199,7 +211,7 @@ class ProfilesController {
   ];
 
   savePost = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       console.log("got it");
       const queryOptions = {
@@ -219,7 +231,7 @@ class ProfilesController {
     },
   ];
   unsavePost = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const queryOptions = {
         unsavePostId: parseInt(req.params.postId),

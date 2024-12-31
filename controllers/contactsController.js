@@ -1,12 +1,12 @@
 import database from "../storage/database.js";
-import { requiresProfile } from "../middleware/authentication.js";
+import { requiresAccount } from "../middleware/authentication.js";
 import { contactExist } from "../utils/contactExist.js";
 
 class ContactsController {
   constructor() {}
 
   getContacts = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const [data, err] = await database.getContacts({
         profileId: req.profile.id,
@@ -20,7 +20,7 @@ class ContactsController {
   ];
 
   addContact = [
-    requiresProfile,
+    requiresAccount,
     async (req, res, next) => {
       const queryOptions = {
         profileId: req.profile.id,
