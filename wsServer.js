@@ -27,36 +27,10 @@ class WSServer {
       },
     });
 
-    this.#io.engine.use(
-      this.onlyWhenHandshake(passport.authenticate("jwt", { session: false }))
-    );
-    this.#io.engine.use(
-      this.onlyWhenHandshake(async (req, res, next) => {
-        if (!req.user) {
-          res.writeHead(401);
-          return res.end();
-        }
-
-        const profile = await getProfileOfUser(req.user.id);
-
-        if (!profile) {
-          res.writeHead(403, { "content-type": "application/json" });
-          return res.write(
-            JSON.stringify({
-              message: "No profile associated with this account",
-            })
-          );
-        } else {
-          req.profile = profile;
-          next();
-        }
-      })
-    );
+    this.#io.use(this.onlyWhenHandshakeSocket(this.authenticate));
 
     this.#io.on("connection", (socket) => {
       console.log("new WS connection");
-
-      socket.auth = { profileId: socket.request.profile.id };
 
       socket.on("chat msg", (msg, contactId, recieverId) => {
         this.#handleMessage(socket, msg, contactId, recieverId);
@@ -79,7 +53,7 @@ class WSServer {
           content: msg,
           sendDate: new Date().toISOString(),
           sender: {
-            connect: { id: socket.request.profile.id },
+            connect: { id: socket.auth.profileId },
           },
           chat: {
             connect: { id: chatId },
@@ -107,11 +81,31 @@ class WSServer {
     }
   }
 
-  onlyWhenHandshake(middleware) {
-    return async (req, res, next) => {
-      const handshake = req._query.sid === undefined;
+  async authenticate(socket, next) {
+    passport.authenticate(
+      "jwt",
+      { session: false },
+      async (err, user, info, status) => {
+        if (!user || err) {
+          return next(new Error("no user"));
+        }
+
+        const profile = await getProfileOfUser(user.id);
+
+        if (!profile) {
+          return next(new Error("no profile"));
+        }
+        socket.auth = { profileId: profile.id };
+        next();
+      }
+    )(socket.request);
+  }
+
+  onlyWhenHandshakeSocket(middleware) {
+    return async (socket, next) => {
+      const handshake = socket.request._query.sid === undefined;
       if (handshake) {
-        return await middleware(req, res, next);
+        return await middleware(socket, next);
       } else {
         next();
       }
