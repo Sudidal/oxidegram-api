@@ -1,7 +1,7 @@
 import prisma from "./prisma.js";
 import asyncHandler from "./asyncHandler.js";
 
-async function contactExist(profileId, contactedId) {
+async function contactExist(profileId: number, contactedId: number) {
   const [result, err] = await asyncHandler.prismaQuery(() =>
     prisma.contact.findFirst({
       where: {
