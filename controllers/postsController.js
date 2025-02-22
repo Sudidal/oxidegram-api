@@ -51,7 +51,7 @@ class PostsController {
       req.body.file = req.file;
       next();
     },
-    validateInput(validationChains.postValidationChain()),
+    ...validateInput(validationChains.postValidationChain()),
     async (req, res, next) => {
       const uploadRes = await remoteStorage.uploadPostFile(req.body.file);
       if (uploadRes instanceof Error) {

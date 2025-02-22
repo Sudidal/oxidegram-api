@@ -1,8 +1,9 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 
-function requiresAccount(req: Request, res: Response, next) {
+function requiresAccount(req: Request, res: Response, next: NextFunction) {
   if (req.body.profile.id === null || req.body.profile.id === undefined) {
-    return res.sendStatus(401);
+    res.sendStatus(401);
+    return;
   }
   next();
 }

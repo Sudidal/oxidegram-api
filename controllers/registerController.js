@@ -8,8 +8,8 @@ class RegisterController {
   constructor() {}
 
   post = [
-    validateInput(validationChains.registerValidationChain()),
-    validateInput(validationChains.profileValidationChain()),
+    ...validateInput(validationChains.registerValidationChain()),
+    ...validateInput(validationChains.profileValidationChain()),
     async (req, res, next) => {
       const [hashedPassword, hashErr] = await asyncHandler.handle(() =>
         bcrypt.hash(req.validatedData.password, 10)

@@ -23,7 +23,7 @@ class CommentsController {
 
   post = [
     requiresAccount,
-    validateInput(validationChains.commentValidationChain()),
+    ...validateInput(validationChains.commentValidationChain()),
     async (req, res, next) => {
       const queryOptions = {
         content: req.validatedData.content,

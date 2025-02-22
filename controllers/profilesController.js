@@ -137,7 +137,7 @@ class ProfilesController {
       req.body.file = req.file;
       next();
     },
-    validateInput(validationChains.profileValidationChain(true)),
+    ...validateInput(validationChains.profileValidationChain(true)),
     async (req, res, next) => {
       let uploadRes = null;
       if (req.body.file) {
