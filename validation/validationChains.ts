@@ -1,6 +1,9 @@
+import type { Request } from "express";
+
 import { body } from "express-validator";
 import customValidators from "./customValidators.js";
-import validationVars from "./validationVars.js";
+import validationVars from "./validationVars.json";
+import type { Meta } from "express-validator";
 
 class ValidationChains {
   constructor() {}
@@ -19,7 +22,7 @@ class ValidationChains {
       .withMessage("Please enter a password"),
   ];
 
-  profileValidationChain = (update) => [
+  profileValidationChain = (update: boolean) => [
     body("username")
       .isString()
       .trim()
@@ -33,9 +36,9 @@ class ValidationChains {
       .bail()
       .matches(/^[a-zA-Z0-9_][a-zA-Z0-9_.]/)
       .withMessage("Username must only contain (a-z) (A-Z) (_) (.)")
-      .custom(async (value, { req }) => {
+      .custom(async (value: string) => {
         if (update) return true;
-        await customValidators.isUsernameNotUsed();
+        await customValidators.isUsernameNotUsed(value);
       })
       .withMessage("Username already in use"),
 
