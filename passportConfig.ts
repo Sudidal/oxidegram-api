@@ -1,14 +1,16 @@
+import process from "process";
+
 import passport from "passport";
 import bcrypt from "bcryptjs";
-import asyncHandler from "./utils/asyncHandler.js";
 import localStrategy from "passport-local";
-import prisma from "./utils/prisma.js";
 import passportJwt from "passport-jwt";
-import getEnv from "./utils/getEnv.js";
+
+import asyncHandler from "./utils/asyncHandler.js";
+import prisma from "./utils/prisma.js";
 
 function configurePassport() {
   passport.use(
-    new localStrategy(
+    new localStrategy.Strategy(
       { usernameField: "email" },
       async (email, password, done) => {
         const [user, err] = await asyncHandler.prismaQuery(() =>
@@ -23,7 +25,7 @@ function configurePassport() {
           return done(err, false);
         }
         if (!user) {
-          return done(null, false, { messages: "E-mail not found" });
+          return done(null, false, { message: "E-mail not found" });
         }
 
         const [match, matchErr] = await asyncHandler.handle(() =>
@@ -34,7 +36,7 @@ function configurePassport() {
           done(err, false);
         }
         if (!match) {
-          return done(null, false, { messages: "Incorrect password" });
+          return done(null, false, { message: "Incorrect password" });
         }
 
         return done(null, user);
@@ -46,7 +48,7 @@ function configurePassport() {
     new passportJwt.Strategy(
       {
         jwtFromRequest: passportJwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: getEnv("JWT_SECRET"),
+        secretOrKey: process.env.JWT_SECRET,
       },
       (jwtPayload, done) => {
         return done(null, jwtPayload);
