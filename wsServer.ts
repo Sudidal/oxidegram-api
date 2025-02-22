@@ -1,28 +1,32 @@
 import prisma from "./utils/prisma.js";
 import asyncHandler from "./utils/asyncHandler.js";
-import { Server } from "socket.io";
+import { Server as SocketIoServer } from "socket.io";
 import passport from "passport";
 import getProfileOfUser from "./middleware/getProfileOfUser.js";
-import getEnv from "./utils/getEnv.js";
 import { instrument } from "@socket.io/admin-ui";
+import process from "process";
+
+import type { Server } from "http";
+import type { Socket } from "socket.io";
+import type { User, PrismaPromise } from "@prisma/client";
 
 class WSServer {
-  #io = new Server();
-  #adminIo = new Server();
+  #io: SocketIoServer;
+  #adminIo: SocketIoServer;
 
   constructor() {}
 
-  start(httpServer) {
-    this.#io = new Server(httpServer, {
+  start(httpServer: Server) {
+    this.#io = new SocketIoServer(httpServer, {
       cors: {
-        origin: [getEnv("WS_ALLOWED_ORIGIN"), "https://admin.socket.io"],
+        origin: [process.env.WS_ALLOWED_ORIGIN, "https://admin.socket.io"],
         credentials: true,
       },
       path: "/direct",
     });
-    this.#adminIo = new Server(httpServer, {
+    this.#adminIo = new SocketIoServer(httpServer, {
       cors: {
-        origin: [getEnv("WS_ALLOWED_ORIGIN"), "https://admin.socket.io"],
+        origin: [process.env.WS_ALLOWED_ORIGIN, "https://admin.socket.io"],
         credentials: true,
       },
     });
@@ -40,20 +44,22 @@ class WSServer {
     instrument(this.#adminIo, {
       auth: {
         type: "basic",
-        username: getEnv("WS_ADMIN_USERNAME"),
-        password: getEnv("WS_ADMIN_PASSWORD"),
+        username: process.env.WS_ADMIN_USERNAME,
+        password: process.env.WS_ADMIN_PASSWORD,
       },
     });
   }
 
-  async #handleMessage(socket, msg, chatId, receiverId) {
+  process;
+
+  async #handleMessage(socket: Socket, msg: string, chatId: number, receiverId: number) {
     const [result, msgErr] = await asyncHandler.prismaQuery(() =>
       prisma.message.create({
         data: {
           content: msg,
           sendDate: new Date().toISOString(),
           sender: {
-            connect: { id: socket.auth.profileId },
+            connect: { id: socket.data.auth.profileId },
           },
           chat: {
             connect: { id: chatId },
@@ -68,24 +74,26 @@ class WSServer {
 
     const targetSocket = await this.#getSocketFromProfileId(receiverId);
 
-    this.#io.to([targetSocket?.id, socket.id]).emit("chat msg", result);
+    if (targetSocket) {
+      this.#io.to([targetSocket.id, socket.id]).emit("chat msg", result);
+    }
   }
 
-  async #getSocketFromProfileId(profileId) {
+  async #getSocketFromProfileId(profileId: number) {
     const allSockets = await this.#io.fetchSockets();
 
     for (let i = 0; i < allSockets.length; i++) {
-      if (allSockets[i].auth.profileId === profileId) {
+      if (allSockets[i].data.auth.profileId === profileId) {
         return allSockets[i];
       }
     }
   }
 
-  async authenticate(socket, next) {
+  async authenticate(socket: Socket, next: (error?: Error) => void) {
     passport.authenticate(
       "jwt",
       { session: false },
-      async (err, user, info, status) => {
+      async (err: Error, user: User) => {
         if (!user || err) {
           return next(new Error("no user"));
         }
@@ -95,17 +103,19 @@ class WSServer {
         if (!profile) {
           return next(new Error("no profile"));
         }
-        socket.auth = { profileId: profile.id };
+        socket.data.auth = { profileId: profile.id };
         next();
       }
     )(socket.request);
   }
 
-  onlyWhenHandshakeSocket(middleware) {
-    return async (socket, next) => {
-      const handshake = socket.request._query.sid === undefined;
+  onlyWhenHandshakeSocket(
+    middleware: (socket: Socket, next: () => void) => void
+  ) {
+    return async (socket: Socket, next: () => void) => {
+      const handshake = socket.request["_query"].sid === undefined;
       if (handshake) {
-        return await middleware(socket, next);
+        return middleware(socket, next);
       } else {
         next();
       }
