@@ -3,10 +3,10 @@ import { Prisma } from "@prisma/client";
 class AsyncHandler {
   constructor() {}
 
-  handle = async <ReturnType>(
-    func: () => ReturnType,
+  handle = async <T>(
+    func: () => Promise<T>,
     errCallback?: (err: Error) => void
-  ): Promise<[ReturnType | null, Error | null]> => {
+  ): Promise<[T | null, Error | null]> => {
     try {
       const result = await func();
       return [result, null];
@@ -27,7 +27,7 @@ class AsyncHandler {
     // prisma errors, I'll just use the general function
     // and easily change this whenever I feel to
 
-    return this.handle(query, errCallback);
+    return await this.handle(query, errCallback);
   };
 }
 
