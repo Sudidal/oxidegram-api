@@ -1,7 +1,12 @@
+import { Prisma } from "@prisma/client";
+
 class AsyncHandler {
   constructor() {}
 
-  handle = async (func, errCallback = null) => {
+  handle = async <ReturnType>(
+    func: () => ReturnType,
+    errCallback?: (err: Error) => void
+  ): Promise<[ReturnType | null, Error | null]> => {
     try {
       const result = await func();
       return [result, null];
@@ -14,19 +19,13 @@ class AsyncHandler {
     }
   };
 
-  prismaQuery = async (query, errCallback = null) => {
+  prismaQuery = async <T>(
+    query: () => Prisma.PrismaPromise<T>,
+    errCallback?: (err: Error) => void
+  ) => {
     // Since Im lazy to implement something suibtable for
     // prisma errors, I'll just use the general function
     // and easily change this whenever I feel to
-
-    if (
-      query?.toString() !== "[object PrismaPromise]" &&
-      query()?.toString() !== "[object PrismaPromise]"
-    ) {
-      console.error(
-        "Didn't supply a prisma query to asyncHandler.prismaQuery()"
-      );
-    }
 
     return this.handle(query, errCallback);
   };
