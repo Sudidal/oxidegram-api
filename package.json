@@ -23,6 +23,7 @@
   "dependencies": {
     "@prisma/client": "^5.20.0",
     "@supabase/supabase-js": "^2.46.1",
+    "@types/multer": "^1.4.12",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "bcryptjs": "^2.4.3",

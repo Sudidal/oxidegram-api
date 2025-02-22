@@ -1,11 +1,15 @@
 import supabaseApi from "./supabaseAPI.js";
 
+type MulterFile = Express.Multer.File
+
 class RemoteStorage {
   constructor() {}
 
-  uploadPostFile = async (file) => {
+  uploadPostFile = async (file: MulterFile) => {
     if (!file) return;
+
     console.log(file);
+
     let dirName = "images";
     const fileMimeType = file.mimetype.split("/");
     if (fileMimeType[0] === "image") {
@@ -15,11 +19,12 @@ class RemoteStorage {
     }
     return await this.uploadAndGetUrl(file, dirName, "posts");
   };
-  uploadAvatarImage = async (file) => {
-    return await this.uploadAndGetUrl(file, "avatars");
+
+  uploadAvatarImage = async (file: MulterFile) => {
+    return await this.uploadAndGetUrl(file, "", "avatars");
   };
 
-  uploadAndGetUrl = async (file, dir = "", bucket) => {
+  uploadAndGetUrl = async (file: MulterFile, dir = "", bucket: string) => {
     try {
       const uploadRes = await supabaseApi.uploadFile(
         bucket,
@@ -34,7 +39,7 @@ class RemoteStorage {
         );
         return urlRes.data.publicUrl;
       } catch (err) {
-        return new Error(err.error.message);
+        return new Error(err);
       }
     } catch (err) {
       return new Error(err.error.message);
