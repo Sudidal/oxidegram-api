@@ -1,4 +1,11 @@
-import { Prisma, Profile, Post, Gender, FileType, NotificationType } from "@prisma/client";
+import {
+  Prisma,
+  Profile,
+  Post,
+  Gender,
+  FileType,
+  NotificationType,
+} from "@prisma/client";
 import asyncHandler from "../utils/asyncHandler.js";
 import prisma from "../utils/prisma.js";
 
@@ -74,7 +81,7 @@ type GetCommentsOptions = {
 type CreateContactOptions = {
   profileId: number;
   contactedId: number;
-}
+};
 
 class Database {
   constructor() {}
@@ -262,10 +269,14 @@ class Database {
       })
     );
 
-    return [result, err];
+    const typedResult: [typeof result | null, Error | null] = [result, err];
+    return typedResult;
   }
 
-  async getPosts(options: GetPostsOptions, requestorProfileId?: number) {
+  async getPosts(
+    options: GetPostsOptions,
+    requestorProfileId?: number
+  ): Promise<[Post[] | Post | null, Error | null]> {
     const whereClause: { id?: number; fileType?: "IMAGE" | "VIDEO" } = {};
     if (options.postId) {
       whereClause.id = options.postId;
@@ -319,7 +330,8 @@ class Database {
       })
     );
 
-    return [result, err];
+    const typedResult: [typeof result | null, Error | null] = [result, err];
+    return typedResult;
   }
 
   async deletePost(postId: number) {
@@ -330,6 +342,8 @@ class Database {
         },
       })
     );
+
+    return [result, err]
   }
 
   async updatePost(postId: number, options: updatePostOptions) {
@@ -370,7 +384,7 @@ class Database {
   }
 
   async getComments(options: GetCommentsOptions) {
-    const whereClause: {postId?: number} = {};
+    const whereClause: { postId?: number } = {};
     if (options.postId) {
       whereClause.postId = options.postId;
     }
@@ -393,7 +407,7 @@ class Database {
     const [chatResult, chatErr] = await asyncHandler.prismaQuery(() =>
       prisma.chat.create({})
     );
-    if(!chatResult || chatErr) {
+    if (!chatResult || chatErr) {
       return [null, chatErr];
     }
 
@@ -417,8 +431,8 @@ class Database {
     return [result, err];
   }
 
-  async getContacts(options: {profileId?: number}) {
-    const whereClause: {profileId?: number} = {};
+  async getContacts(options: { profileId?: number }) {
+    const whereClause: { profileId?: number } = {};
     if (options.profileId) {
       whereClause.profileId = options.profileId;
     }
@@ -431,9 +445,11 @@ class Database {
         },
       })
     );
+
+    return [result, err];
   }
 
-  async createNotification(options: {type: NotificationType; title: string}) {
+  async createNotification(options: { type: NotificationType; title: string }) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.notification.create({
         data: {
@@ -443,7 +459,8 @@ class Database {
       })
     );
 
-    return [result, err];
+    const typedResult: [typeof result | null, Error | null] = [result, err];
+    return typedResult;
   }
 
   async pushNotificationToFollowers(profileId: number, notificationId: number) {
