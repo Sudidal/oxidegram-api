@@ -1,6 +1,80 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Profile, Post, Gender, FileType, NotificationType } from "@prisma/client";
 import asyncHandler from "../utils/asyncHandler.js";
 import prisma from "../utils/prisma.js";
+
+type Flatten<Type> = Type extends Array<infer Item> ? Item : Type;
+type createAccountOptions = {
+  email: string;
+  password: string;
+  username: string;
+  fullName: string;
+};
+type updateProfileOptions = {
+  username?: string;
+  fullName?: string;
+  bio?: string;
+  country?: string;
+  avatarUrl?: string;
+  gender?: Gender;
+  websiteUrl?: string;
+  followId?: number;
+  unfollowId?: number;
+  savePostId?: number;
+  unsavePostId?: number;
+};
+type getProfilesOptions = {
+  profileId?: number;
+  limit?: number;
+  offset?: number;
+  searchQuery?: string;
+  order?: "asc" | "desc";
+  sortByFollowers?: boolean;
+  singleValue?: boolean;
+};
+type getDetailsOfProfileOptions = {
+  posts?: boolean;
+  follows?: boolean;
+  followers?: boolean;
+  savedPosts?: boolean;
+  notifications?: boolean;
+  contacts?: boolean;
+};
+type createPostOptions = {
+  content: string;
+  fileUrl: string;
+  publishDate: Date;
+  fileType: FileType;
+  authorId: number;
+};
+type updatePostOptions = {
+  content?: string;
+  imageUrl?: string;
+  likerId?: number;
+  unlikerId?: number;
+};
+type GetPostsOptions = {
+  postId?: number;
+  filter?: "images" | "videos";
+  sortByLikes?: boolean;
+  order?: "asc" | "desc";
+  offset?: number;
+  limit?: number;
+  singleValue?: boolean;
+};
+type CreateCommentOptions = {
+  content: string;
+  publishDate: Date;
+  authorId: number;
+};
+type GetCommentsOptions = {
+  postId?: number;
+  take?: number;
+  offset?: number;
+};
+type CreateContactOptions = {
+  profileId: number;
+  contactedId: number;
+}
 
 class Database {
   constructor() {}
@@ -9,29 +83,27 @@ class Database {
   #postsLimit = 7;
   #commentsLimit = 15;
 
-  postIncludeOptions = (profileId = -1) => {
-    return {
-      author: true,
-      likers: {
-        where: {
-          id: profileId ?? -1,
-        },
+  postIncludeOptions = (profileId = -1): Prisma.PostInclude => ({
+    author: true,
+    likers: {
+      where: {
+        id: profileId ?? -1,
       },
-      savers: {
-        where: {
-          id: profileId ?? -1,
-        },
+    },
+    savers: {
+      where: {
+        id: profileId ?? -1,
       },
-      _count: {
-        select: {
-          likers: true,
-          comments: true,
-        },
+    },
+    _count: {
+      select: {
+        likers: true,
+        comments: true,
       },
-    };
-  };
+    },
+  });
 
-  async createAccount(options) {
+  async createAccount(options: createAccountOptions) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.user.create({
         data: {
@@ -50,11 +122,11 @@ class Database {
     return [result, err];
   }
 
-  async getProfiles(requestorProfileId, options) {
-    const additionalWhere = {};
+  async getProfiles(requestorProfileId: number, options: getProfilesOptions) {
+    const additionalWhere: { id?: number } = {};
     if (options.profileId) additionalWhere.id = options.profileId;
 
-    let [result, err] = await asyncHandler.prismaQuery(() =>
+    let [queryResult, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findMany({
         take: options.limit || this.#profilesLimit,
         skip: options.offset || 0,
@@ -77,31 +149,39 @@ class Database {
         orderBy: {
           followers: options.sortByFollowers
             ? {
-                _count: options.order ?? -1,
+                _count: options.order ?? Prisma.skip,
               }
             : Prisma.skip,
         },
       })
     );
 
-    result?.forEach((result) => {
-      result.followed = false;
-      if (result.followers.length > 0) {
-        result.followed = true;
-      }
-      result.followers = undefined;
-    });
+    // transforming the result
+    if (queryResult) {
+      type TransformedResult = Profile & { followed: boolean };
 
-    if (options.singleValue) {
-      if (Array.isArray(result)) {
-        result = result[0];
+      const transformedResult = Array<TransformedResult>();
+
+      queryResult.forEach((i) => {
+        transformedResult.push({ ...i, followed: i.followers.length > 0 });
+        i.followers = [];
+      });
+
+      if (options.singleValue) {
+        return [transformedResult, err];
+      } else {
+        return [transformedResult[0], err];
       }
     }
 
-    return [result, err];
+    return [null, err];
   }
 
-  async getDetailsOfProfile(requestorProfileId, profileId, options) {
+  async getDetailsOfProfile(
+    requestorProfileId: number,
+    profileId: number,
+    options: getDetailsOfProfileOptions
+  ) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.findFirst({
         where: {
@@ -139,37 +219,17 @@ class Database {
       })
     );
 
-    result?.posts?.forEach((post) => {
-      post.liked = false;
-      post.saved = false;
+    // transforming the result
+    if (result && profileId) {
+      result.posts = this.#transformPosts(result.posts);
+      result.savedPosts = this.#transformPosts(result.savedPosts);
 
-      if (post.likers.length > 0) {
-        post.liked = true;
-      }
-      if (post.savers.length > 0) {
-        post.saved = true;
-      }
-
-      post.savers = post.likers = undefined;
-    });
-    result?.savedPosts?.forEach((post) => {
-      post.liked = false;
-      post.saved = false;
-
-      if (post.likers.length > 0) {
-        post.liked = true;
-      }
-      if (post.savers.length > 0) {
-        post.saved = true;
-      }
-
-      post.savers = post.likers = undefined;
-    });
-
-    return [result, err];
+      return [result, err];
+    }
+    return [null, err];
   }
 
-  async updateProfile(profileId, options) {
+  async updateProfile(profileId: number, options: updateProfileOptions) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.profile.update({
         where: {
@@ -205,8 +265,8 @@ class Database {
     return [result, err];
   }
 
-  async getPosts(requestorProfileId, options) {
-    const whereClause = {};
+  async getPosts(options: GetPostsOptions, requestorProfileId?: number) {
+    const whereClause: { id?: number; fileType?: "IMAGE" | "VIDEO" } = {};
     if (options.postId) {
       whereClause.id = options.postId;
     }
@@ -215,7 +275,7 @@ class Database {
       else if (options.filter === "videos") whereClause.fileType = "VIDEO";
     }
 
-    let [result, err] = await asyncHandler.prismaQuery(() =>
+    let [queryResult, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.findMany({
         where: { ...whereClause },
 
@@ -233,38 +293,28 @@ class Database {
       })
     );
 
-    result?.forEach((post) => {
-      post.liked = false;
-      post.saved = false;
-
-      if (post.likers.length > 0) {
-        post.liked = true;
-      }
-      if (post.savers.length > 0) {
-        post.saved = true;
-      }
-
-      post.savers = post.likers = undefined;
-    });
+    const formattedResult = queryResult
+      ? this.#transformPosts(queryResult)
+      : null;
 
     if (options.singleValue) {
-      if (Array.isArray(result)) {
-        result = result[0];
+      if (Array.isArray(queryResult)) {
+        return [queryResult[0], err];
       }
     }
 
-    return [result, err];
+    return [formattedResult, err];
   }
 
-  async createPost(requestorProfileId, options) {
+  async createPost(options: createPostOptions) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.create({
         data: {
-          content: options.content ?? Prisma.skip,
-          imageUrl: options.fileUrl ?? Prisma.skip,
-          publishDate: options.publishDate ?? Prisma.skip,
-          fileType: options.fileType ?? Prisma.skip,
-          authorId: options.authorId ?? Prisma.skip,
+          content: options.content,
+          imageUrl: options.fileUrl,
+          publishDate: options.publishDate,
+          fileType: options.fileType,
+          authorId: options.authorId,
         },
       })
     );
@@ -272,7 +322,7 @@ class Database {
     return [result, err];
   }
 
-  async deletePost(postId, options) {
+  async deletePost(postId: number) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.delete({
         where: {
@@ -282,7 +332,7 @@ class Database {
     );
   }
 
-  async updatePost(postId, options) {
+  async updatePost(postId: number, options: updatePostOptions) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.post.update({
         where: {
@@ -304,14 +354,14 @@ class Database {
     return [result, err];
   }
 
-  async createComment(postId, options) {
+  async createComment(postId: number, options: CreateCommentOptions) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.comment.create({
         data: {
-          content: options.content ?? Prisma.skip,
-          publishDate: options.publishDate ?? Prisma.skip,
+          content: options.content,
+          publishDate: options.publishDate,
           postId: postId,
-          authorId: options.authorId ?? Prisma.skip,
+          authorId: options.authorId,
         },
       })
     );
@@ -319,8 +369,8 @@ class Database {
     return [result, err];
   }
 
-  async getComments(requestorProfileId, options) {
-    const whereClause = {};
+  async getComments(options: GetCommentsOptions) {
+    const whereClause: {postId?: number} = {};
     if (options.postId) {
       whereClause.postId = options.postId;
     }
@@ -339,10 +389,14 @@ class Database {
     return [result, err];
   }
 
-  async createContact(options) {
+  async createContact(options: CreateContactOptions) {
     const [chatResult, chatErr] = await asyncHandler.prismaQuery(() =>
       prisma.chat.create({})
     );
+    if(!chatResult || chatErr) {
+      return [null, chatErr];
+    }
+
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.contact.createMany({
         data: [
@@ -363,8 +417,8 @@ class Database {
     return [result, err];
   }
 
-  async getContacts(options) {
-    const whereClause = {};
+  async getContacts(options: {profileId?: number}) {
+    const whereClause: {profileId?: number} = {};
     if (options.profileId) {
       whereClause.profileId = options.profileId;
     }
@@ -379,7 +433,7 @@ class Database {
     );
   }
 
-  async createNotification(options) {
+  async createNotification(options: {type: NotificationType; title: string}) {
     const [result, err] = await asyncHandler.prismaQuery(() =>
       prisma.notification.create({
         data: {
@@ -392,13 +446,41 @@ class Database {
     return [result, err];
   }
 
-  async pushNotificationToFollowers(profileId, notificationId) {
+  async pushNotificationToFollowers(profileId: number, notificationId: number) {
     const [result, err] = await asyncHandler.prismaQuery(
       () =>
         prisma.$queryRaw`SELECT push_notif_to_followers(${profileId}, ${notificationId})`
     );
 
     return [result, err];
+  }
+
+  /** @description Adds `liked` and `saved` fields and sets `likers` and `savers` to undefined */
+  #transformPosts(posts: Post[]) {
+    type TransformedPost = Flatten<typeof posts> & {
+      liked: boolean;
+      saved: boolean;
+      likers: unknown;
+      savers: unknown;
+    };
+
+    const transformedPosts = Array<TransformedPost>();
+
+    posts.forEach((post) => {
+      if ("likers" in post && "savers" in post) {
+        if (Array.isArray(post.likers) && Array.isArray(post.savers)) {
+          transformedPosts.push({
+            ...post,
+            liked: post.likers.length > 0,
+            saved: post.savers.length > 0,
+            savers: undefined,
+            likers: undefined,
+          });
+        }
+      }
+    });
+
+    return transformedPosts;
   }
 }
 
