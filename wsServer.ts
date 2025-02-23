@@ -52,7 +52,12 @@ class WSServer {
 
   process;
 
-  async #handleMessage(socket: Socket, msg: string, chatId: number, receiverId: number) {
+  async #handleMessage(
+    socket: Socket,
+    msg: string,
+    chatId: number,
+    receiverId: number
+  ) {
     const [result, msgErr] = await asyncHandler.prismaQuery(() =>
       prisma.message.create({
         data: {
@@ -68,15 +73,19 @@ class WSServer {
       })
     );
 
-    if (msgErr) {
-      return;
+    if (msgErr || !result) {
+      return console.log("Creating message failed: ", msgErr);
     }
 
     const targetSocket = await this.#getSocketFromProfileId(receiverId);
 
+    const receiversIds = [socket.id];
+
     if (targetSocket) {
-      this.#io.to([targetSocket.id, socket.id]).emit("chat msg", result);
+      receiversIds.push(targetSocket.id);
     }
+
+    this.#io.to(receiversIds).emit("chat msg", result);
   }
 
   async #getSocketFromProfileId(profileId: number) {
