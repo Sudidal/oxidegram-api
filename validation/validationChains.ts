@@ -22,7 +22,7 @@ class ValidationChains {
       .withMessage("Please enter a password"),
   ];
 
-  profileValidationChain = (update: boolean) => [
+  profileValidationChain = (update: boolean = false) => [
     body("username")
       .isString()
       .trim()
