@@ -1,4 +1,4 @@
-import prisma from "./prisma.js";
+import prisma from "./prisma";
 
 async function resetDb() {
   await prisma.$transaction([

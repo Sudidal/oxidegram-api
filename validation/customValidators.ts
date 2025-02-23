@@ -1,8 +1,7 @@
-import type { Request, Response } from "express";
 import type { Meta } from "express-validator";
 
-import prisma from "../utils/prisma.js";
-import asyncHandler from "../utils/asyncHandler.js";
+import prisma from "../utils/prisma";
+import asyncHandler from "../utils/asyncHandler";
 
 class CustomValidators {
   constructor() {}

@@ -1,5 +1,5 @@
-import asyncHandler from "../utils/asyncHandler.js";
-import prisma from "../utils/prisma.js";
+import asyncHandler from "../utils/asyncHandler";
+import prisma from "../utils/prisma";
 
 async function getProfileOfUser(userId: number) {
   const [profile, err] = await asyncHandler.prismaQuery(() =>

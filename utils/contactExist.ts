@@ -1,5 +1,5 @@
-import prisma from "./prisma.js";
-import asyncHandler from "./asyncHandler.js";
+import prisma from "./prisma";
+import asyncHandler from "./asyncHandler";
 
 async function contactExist(profileId: number, contactedId: number) {
   const [result, err] = await asyncHandler.prismaQuery(() =>

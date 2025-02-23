@@ -1,7 +1,7 @@
 import process from "node:process";
-import app from "./app.js";
+import app from "./app";
 import http from "node:http";
-import wsServer from "./wsServer.js";
+import wsServer from "./wsServer";
 
 const PORT = process.env.PORT || 3000;
 

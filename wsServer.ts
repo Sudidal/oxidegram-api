@@ -1,8 +1,8 @@
-import prisma from "./utils/prisma.js";
-import asyncHandler from "./utils/asyncHandler.js";
+import prisma from "./utils/prisma";
+import asyncHandler from "./utils/asyncHandler";
 import { Server as SocketIoServer } from "socket.io";
 import passport from "passport";
-import getProfileOfUser from "./middleware/getProfileOfUser.js";
+import getProfileOfUser from "./middleware/getProfileOfUser";
 import { instrument } from "@socket.io/admin-ui";
 import process from "process";
 

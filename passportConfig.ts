@@ -5,8 +5,8 @@ import bcrypt from "bcryptjs";
 import localStrategy from "passport-local";
 import passportJwt from "passport-jwt";
 
-import asyncHandler from "./utils/asyncHandler.js";
-import prisma from "./utils/prisma.js";
+import asyncHandler from "./utils/asyncHandler";
+import prisma from "./utils/prisma";
 
 function configurePassport() {
   passport.use(
@@ -18,6 +18,9 @@ function configurePassport() {
             where: {
               email: email,
             },
+            select: {
+              password: false
+            }
           })
         );
 

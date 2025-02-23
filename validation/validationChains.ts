@@ -1,9 +1,6 @@
-import type { Request } from "express";
-
 import { body } from "express-validator";
-import customValidators from "./customValidators.js";
+import customValidators from "./customValidators";
 import validationVars from "./validationVars.json";
-import type { Meta } from "express-validator";
 
 class ValidationChains {
   constructor() {}

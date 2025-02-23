@@ -6,8 +6,8 @@ import {
   FileType,
   NotificationType,
 } from "@prisma/client";
-import asyncHandler from "../utils/asyncHandler.js";
-import prisma from "../utils/prisma.js";
+import asyncHandler from "../utils/asyncHandler";
+import prisma from "../utils/prisma";
 
 type Flatten<Type> = Type extends Array<infer Item> ? Item : Type;
 type createAccountOptions = {

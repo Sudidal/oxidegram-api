@@ -1,4 +1,4 @@
-import supabaseApi from "./supabaseAPI.js";
+import supabaseApi from "./supabaseAPI";
 
 type MulterFile = Express.Multer.File
 

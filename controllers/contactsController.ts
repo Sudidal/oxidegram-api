@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 
-import database from "../storage/database.js";
-import { requiresAccount } from "../middleware/authentication.js";
-import { contactExist } from "../utils/contactExist.js";
+import database from "../storage/database";
+import { requiresAccount } from "../middleware/authentication";
+import { contactExist } from "../utils/contactExist";
 
 class ContactsController {
   constructor() {}

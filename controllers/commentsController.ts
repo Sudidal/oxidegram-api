@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 
-import database from "../storage/database.js";
-import validateInput from "../middleware/validateInput.js";
-import validationChains from "../validation/validationChains.js";
-import { requiresAccount } from "../middleware/authentication.js";
+import database from "../storage/database";
+import validateInput from "../middleware/validateInput";
+import validationChains from "../validation/validationChains";
+import { requiresAccount } from "../middleware/authentication";
 
 class CommentsController {
   constructor() {}
