@@ -29,7 +29,7 @@ class PostsController {
 
     const [result, err] = await database.getPosts(
       queryOptions,
-      req.body.profile.id
+      res.locals.profile.id
     );
 
     if (err) {
@@ -47,7 +47,7 @@ class PostsController {
 
     const [result, err] = await database.getPosts(
       queryOptions,
-      req.body.profile.id
+      res.locals.profile.id
     );
 
     if (err) {
@@ -76,7 +76,7 @@ class PostsController {
       const queryOptions = {
         content: req.body.validatedData.content,
         publishDate: new Date(),
-        authorId: req.body.profile.id,
+        authorId: res.locals.profile.id,
         fileUrl: uploadRes,
         fileType:
           fileType[0] === "video" ? "VIDEO" : ("IMAGE" as "VIDEO" | "IMAGE"),
@@ -122,7 +122,7 @@ class PostsController {
           postId: parseInt(req.params.postId),
           singleValue: true,
         },
-        req.body.profile.id
+        res.locals.profile.id
       );
 
       if (!result || err) {
@@ -132,7 +132,7 @@ class PostsController {
         return next("database.getPosts() as singleValue returned an array");
       }
 
-      if (result.authorId !== req.body.profile.id) {
+      if (result.authorId !== res.locals.profile.id) {
         return res
           .status(403)
           .json({ message: "You are not allowed to do this action" });
@@ -154,7 +154,7 @@ class PostsController {
     requiresAccount,
     async function (req: Request, res: Response, next: NextFunction) {
       const queryOptions = {
-        likerId: req.body.profile.id,
+        likerId: res.locals.profile.id,
       };
       const [result, err] = await database.updatePost(
         parseInt(req.params.postId),
@@ -171,7 +171,7 @@ class PostsController {
     requiresAccount,
     async function (req: Request, res: Response, next: NextFunction) {
       const queryOptions = {
-        unlikerId: req.body.profile.id,
+        unlikerId: res.locals.profile.id,
       };
       const [result, err] = await database.updatePost(
         parseInt(req.params.postId),

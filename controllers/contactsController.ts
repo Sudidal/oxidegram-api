@@ -11,7 +11,7 @@ class ContactsController {
     requiresAccount,
     async (req: Request, res: Response, next: NextFunction) => {
       const [data, err] = await database.getContacts({
-        profileId: req.body.profile.id,
+        profileId: res.locals.profile.id,
       });
 
       if (err) {
@@ -26,7 +26,7 @@ class ContactsController {
     requiresAccount,
     async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
-        profileId: req.body.profile.id,
+        profileId: res.locals.profile.id,
         contactedId: parseInt(req.params.profileId),
       };
 

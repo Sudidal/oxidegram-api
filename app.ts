@@ -24,14 +24,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
-  req.body.profile = {}
+  res.locals.profile = {}
   passport.authenticate(
     "jwt",
     { session: false },
     async (err: Error, user: User, info: string) => {
-      req.body.user = user || {};
-      req.body.profile = await getProfileOfUser(user.id) || {};
-      console.log(req.body.profile)
+      res.locals.user = user || {};
+      res.locals.profile = await getProfileOfUser(user.id) || {};
       next();
     }
   )(req, res, next);

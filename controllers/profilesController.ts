@@ -22,7 +22,7 @@ class ProfilesController {
     };
 
     const [result, err] = await database.getProfiles(
-      req.body.profile.id,
+      res.locals.profile.id,
       queryOptions
     );
 
@@ -42,7 +42,7 @@ class ProfilesController {
     };
 
     const [result, err] = await database.getProfiles(
-      req.body.profile.id,
+      res.locals.profile.id,
       queryOptions
     );
 
@@ -57,12 +57,12 @@ class ProfilesController {
     requiresAccount,
     async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
-        profileId: req.body.profile.id,
+        profileId: res.locals.profile.id,
         singleValue: true,
       };
 
       const [result, err] = await database.getProfiles(
-        req.body.profile.id,
+        res.locals.profile.id,
         queryOptions
       );
 
@@ -82,7 +82,7 @@ class ProfilesController {
     };
 
     const [result, err] = await database.getProfiles(
-      req.body.profile.id,
+      res.locals.profile.id,
       queryOptions
     );
 
@@ -102,7 +102,7 @@ class ProfilesController {
     }
 
     let allowSensitive = false;
-    if (req.body.profile.id === profileId) {
+    if (res.locals.profile.id === profileId) {
       allowSensitive = true;
     }
 
@@ -116,7 +116,7 @@ class ProfilesController {
     };
 
     const [result, err] = await database.getDetailsOfProfile(
-      req.body.profile.id,
+      res.locals.profile.id,
       profileId,
       queryOptions
     );
@@ -157,7 +157,7 @@ class ProfilesController {
       };
 
       const [result, err] = await database.updateProfile(
-        req.body.profile.id,
+        res.locals.profile.id,
         queryOptions
       );
 
@@ -177,7 +177,7 @@ class ProfilesController {
       };
 
       const [result, err] = await database.updateProfile(
-        req.body.profile.id,
+        res.locals.profile.id,
         queryOptions
       );
 
@@ -196,7 +196,7 @@ class ProfilesController {
       };
 
       const [result, err] = await database.updateProfile(
-        req.body.profile.id,
+        res.locals.profile.id,
         queryOptions
       );
 
@@ -217,7 +217,7 @@ class ProfilesController {
       };
 
       const [result, err] = await database.updateProfile(
-        req.body.profile.id,
+        res.locals.profile.id,
         queryOptions
       );
 
@@ -236,7 +236,7 @@ class ProfilesController {
       };
 
       const [result, err] = await database.updateProfile(
-        req.body.profile.id,
+        res.locals.profile.id,
         queryOptions
       );
 

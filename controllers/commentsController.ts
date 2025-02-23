@@ -31,7 +31,7 @@ class CommentsController {
       const queryOptions = {
         content: req.body.validatedData.content as string,
         publishDate: new Date(),
-        authorId: req.body.profile.id as number
+        authorId: res.locals.profile.id as number
       };
 
       const [result, err] = await database.createComment(
