@@ -130,7 +130,7 @@ class Database {
   }
 
   async getProfiles(requestorProfileId: number, options: getProfilesOptions) {
-    const additionalWhere: { id?: number } = {};
+    const additionalWhere: any = {};
     if (options.profileId) additionalWhere.id = options.profileId;
 
     let [queryResult, err] = await asyncHandler.prismaQuery(() =>
@@ -277,7 +277,7 @@ class Database {
     options: GetPostsOptions,
     requestorProfileId?: number
   ): Promise<[Post[] | Post | null, Error | null]> {
-    const whereClause: { id?: number; fileType?: "IMAGE" | "VIDEO" } = {};
+    const whereClause: any = {};
     if (options.postId) {
       whereClause.id = options.postId;
     }
@@ -384,7 +384,7 @@ class Database {
   }
 
   async getComments(options: GetCommentsOptions) {
-    const whereClause: { postId?: number } = {};
+    const whereClause: any = {};
     if (options.postId) {
       whereClause.postId = options.postId;
     }
@@ -432,7 +432,7 @@ class Database {
   }
 
   async getContacts(options: { profileId?: number }) {
-    const whereClause: { profileId?: number } = {};
+    const whereClause: any = {};
     if (options.profileId) {
       whereClause.profileId = options.profileId;
     }
@@ -474,6 +474,8 @@ class Database {
 
   /** @description Adds `liked` and `saved` fields and sets `likers` and `savers` to undefined */
   #transformPosts(posts: Post[]) {
+    if(!posts || !Array.isArray(posts)) return posts
+
     type TransformedPost = Flatten<typeof posts> & {
       liked: boolean;
       saved: boolean;
