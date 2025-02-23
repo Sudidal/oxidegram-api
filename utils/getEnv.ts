@@ -3,7 +3,8 @@ import { config } from "dotenv";
 
 config();
 
-function getEnv(input) {
+/** @deprecated */
+function getEnv(input: string) {
   const result = process.env[input];
   if (!result) console.error(`Environment variable "${input}" is not defined`);
   return result;
