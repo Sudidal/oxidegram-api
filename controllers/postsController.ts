@@ -1,3 +1,5 @@
+import { Request, Response, NextFunction } from "express";
+
 import { requiresAccount } from "../middleware/authentication.js";
 import validationChains from "../validation/validationChains.js";
 import validateInput from "../middleware/validateInput.js";
@@ -11,16 +13,24 @@ const upload = multer({ storage: storage });
 class PostsController {
   constructor() {}
 
-  async getMany(req, res, next) {
+  async getMany(req: Request, res: Response, next: NextFunction) {
+    let filter: "images" | "videos" | undefined = undefined;
+    if (req.query.filter === "images" || req.query.filter === "videos") {
+      filter = req.query.filter;
+    }
+
     const queryOptions = {
-      limit: parseInt(req.query.limit),
-      offset: parseInt(req.query.offset),
-      sortByLikes: req.query.sortByLikes,
-      filter: req.query.filter,
-      order: "desc",
+      limit: parseInt((req.query.limit as string) || ""),
+      offset: parseInt((req.query.offset as string) || ""),
+      sortByLikes: Boolean(req.query.sortByLikes || false),
+      filter: filter,
+      order: "desc" as "asc" | "desc",
     };
 
-    const [result, err] = await database.getPosts(req.profile.id, queryOptions);
+    const [result, err] = await database.getPosts(
+      queryOptions,
+      req.body.profile.id
+    );
 
     if (err) {
       return next(err);
@@ -29,13 +39,16 @@ class PostsController {
     res.json({ posts: result });
   }
 
-  async getOne(req, res, next) {
+  async getOne(req: Request, res: Response, next: NextFunction) {
     const queryOptions = {
       postId: parseInt(req.params.postId),
       singleValue: true,
     };
 
-    const [result, err] = await database.getPosts(req.profile.id, queryOptions);
+    const [result, err] = await database.getPosts(
+      queryOptions,
+      req.body.profile.id
+    );
 
     if (err) {
       return next(err);
@@ -47,33 +60,31 @@ class PostsController {
   post = [
     requiresAccount,
     upload.single("file"),
-    (req, res, next) => {
+    (req: Request, res: Response, next: NextFunction) => {
       req.body.file = req.file;
       next();
     },
     ...validateInput(validationChains.postValidationChain()),
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const uploadRes = await remoteStorage.uploadPostFile(req.body.file);
-      if (uploadRes instanceof Error) {
+      if (uploadRes instanceof Error || !uploadRes) {
         return next(uploadRes);
       }
       console.log(uploadRes);
 
       const fileType = req.body.file?.mimetype.split("/");
       const queryOptions = {
-        content: req.validatedData.content,
-        publishDate: new Date().toISOString(),
-        authorId: req.profile.id,
+        content: req.body.validatedData.content,
+        publishDate: new Date(),
+        authorId: req.body.profile.id,
         fileUrl: uploadRes,
-        fileType: fileType[0] === "video" ? "VIDEO" : "IMAGE",
+        fileType:
+          fileType[0] === "video" ? "VIDEO" : ("IMAGE" as "VIDEO" | "IMAGE"),
       };
 
-      const [newPost, newPostErr] = await database.createPost(
-        req.profile.id,
-        queryOptions
-      );
+      const [newPost, newPostErr] = await database.createPost(queryOptions);
 
-      if (newPostErr) {
+      if (newPostErr || !newPost) {
         return next(newPostErr);
       }
 
@@ -85,7 +96,7 @@ class PostsController {
         }),
       });
 
-      if (newNotifErr) {
+      if (newNotifErr || !newNotif) {
         console.error(newNotifErr);
       } else {
         const [pushNotifResult, pushNotifErr] =
@@ -105,20 +116,30 @@ class PostsController {
 
   delete = [
     requiresAccount,
-    async (req, res, next) => {
-      const [result, err] = await database.getPosts(req.profile.id, {
-        postId: parseInt(req.params.postId),
-      });
+    async (req: Request, res: Response, next: NextFunction) => {
+      const [result, err] = await database.getPosts(
+        {
+          postId: parseInt(req.params.postId),
+          singleValue: true,
+        },
+        req.body.profile.id
+      );
 
-      if (result?.authorId !== req.profile.id) {
+      if (!result || err) {
+        return next(err);
+      }
+      if (Array.isArray(result)) {
+        return next("database.getPosts() as singleValue returned an array");
+      }
+
+      if (result.authorId !== req.body.profile.id) {
         return res
           .status(403)
           .json({ message: "You are not allowed to do this action" });
       }
 
       const [deleteResult, deleteErr] = await database.deletePost(
-        parseInt(req.params.postId),
-        {}
+        parseInt(req.params.postId)
       );
 
       if (deleteErr) {
@@ -131,9 +152,9 @@ class PostsController {
 
   like = [
     requiresAccount,
-    async function (req, res, next) {
+    async function (req: Request, res: Response, next: NextFunction) {
       const queryOptions = {
-        likerId: req.profile.id,
+        likerId: req.body.profile.id,
       };
       const [result, err] = await database.updatePost(
         parseInt(req.params.postId),
@@ -148,9 +169,9 @@ class PostsController {
   ];
   unlike = [
     requiresAccount,
-    async function (req, res, next) {
+    async function (req: Request, res: Response, next: NextFunction) {
       const queryOptions = {
-        unlikerId: req.profile.id,
+        unlikerId: req.body.profile.id,
       };
       const [result, err] = await database.updatePost(
         parseInt(req.params.postId),

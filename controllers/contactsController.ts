@@ -1,3 +1,5 @@
+import type { Request, Response, NextFunction } from "express";
+
 import database from "../storage/database.js";
 import { requiresAccount } from "../middleware/authentication.js";
 import { contactExist } from "../utils/contactExist.js";
@@ -7,23 +9,24 @@ class ContactsController {
 
   getContacts = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const [data, err] = await database.getContacts({
-        profileId: req.profile.id,
+        profileId: req.body.profile.id,
       });
 
       if (err) {
         return next(err);
       }
+
       res.json(data);
     },
   ];
 
   addContact = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
-        profileId: req.profile.id,
+        profileId: req.body.profile.id,
         contactedId: parseInt(req.params.profileId),
       };
 
@@ -31,8 +34,6 @@ class ContactsController {
         queryOptions.profileId,
         queryOptions.contactedId
       );
-
-      console.log(exists);
 
       if (exists) {
         return res.json({ message: "Contact already exist" });

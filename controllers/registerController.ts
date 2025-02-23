@@ -1,3 +1,5 @@
+import type { Request, Response, NextFunction } from "express";
+
 import database from "../storage/database.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import bcrypt from "bcryptjs";
@@ -10,20 +12,20 @@ class RegisterController {
   post = [
     ...validateInput(validationChains.registerValidationChain()),
     ...validateInput(validationChains.profileValidationChain()),
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const [hashedPassword, hashErr] = await asyncHandler.handle(() =>
-        bcrypt.hash(req.validatedData.password, 10)
+        bcrypt.hash(req.body.validatedData.password, 10)
       );
 
-      if (hashErr) {
+      if (hashErr || ! hashedPassword) {
         return next(hashErr);
       }
 
       const queryOptions = {
-        email: req.validatedData.email,
+        email: req.body.validatedData.email,
         password: hashedPassword,
-        username: req.validatedData.username,
-        fullName: req.validatedData.fullName,
+        username: req.body.validatedData.username,
+        fullName: req.body.validatedData.fullName,
       };
 
       const [result, err] = await database.createAccount(queryOptions);

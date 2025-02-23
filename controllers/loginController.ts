@@ -1,15 +1,18 @@
+import type { Request, Response, NextFunction } from "express";
+
+import process from "process";
+
 import passport from "passport";
 import jwt from "jsonwebtoken";
-import getEnv from "../utils/getEnv.js";
 
 class LoginController {
   constructor() {}
 
-  post(req, res, next) {
+  post(req: Request, res: Response, next: NextFunction) {
     passport.authenticate(
       "local",
       { session: false, failureMessage: true },
-      function (err, user, info) {
+      function (err: Error, user: Express.User, info: string) {
         if (err || !user) {
           console.log(info);
           return res.status(401).json({ errors: info });
@@ -18,7 +21,7 @@ class LoginController {
           if (err) {
             next(err);
           }
-          const jwtToken = jwt.sign(user, getEnv("JWT_SECRET"), {
+          const jwtToken = jwt.sign(user, process.env.JWT_SECRET, {
             expiresIn: 60 * 60 * 24 * 4, // 4 Days
           });
           res.json({ message: "Login successfull", jwtToken: jwtToken });

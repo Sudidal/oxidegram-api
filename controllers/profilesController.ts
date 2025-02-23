@@ -1,3 +1,5 @@
+import { Request, Response, NextFunction } from "express";
+
 import { requiresAccount } from "../middleware/authentication.js";
 import validateInput from "../middleware/validateInput.js";
 import validationChains from "../validation/validationChains.js";
@@ -11,16 +13,16 @@ const upload = multer({ storage: storage });
 class ProfilesController {
   constructor() {}
 
-  async getMany(req, res, next) {
+  async getMany(req: Request, res: Response, next: NextFunction) {
     const queryOptions = {
-      take: parseInt(req.query.limit),
-      skip: parseInt(req.query.skip),
-      sortByFollowers: req.query.sortByFollowers,
-      order: "desc",
+      take: parseInt((req.query.limit as string) || ""),
+      skip: parseInt((req.query.skip as string) || ""),
+      sortByFollowers: Boolean(req.query.sortByFollowers) || undefined,
+      order: "desc" as "desc" | "asc",
     };
 
     const [result, err] = await database.getProfiles(
-      req.profile.id,
+      req.body.profile.id,
       queryOptions
     );
 
@@ -31,12 +33,8 @@ class ProfilesController {
     res.json({ profiles: result });
   }
 
-  async getOne(req, res, next) {
+  async getOne(req: Request, res: Response, next: NextFunction) {
     const profileId = parseInt(req.params.profileId);
-
-    if (isNaN(profileId)) {
-      return res.sendStatus(400);
-    }
 
     const queryOptions = {
       profileId: profileId,
@@ -44,7 +42,7 @@ class ProfilesController {
     };
 
     const [result, err] = await database.getProfiles(
-      req.profile.id,
+      req.body.profile.id,
       queryOptions
     );
 
@@ -57,14 +55,14 @@ class ProfilesController {
 
   getMe = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
-        profileId: req.profile.id,
+        profileId: req.body.profile.id,
         singleValue: true,
       };
 
       const [result, err] = await database.getProfiles(
-        req.profile.id,
+        req.body.profile.id,
         queryOptions
       );
 
@@ -76,16 +74,15 @@ class ProfilesController {
     },
   ];
 
-  async search(req, res, next) {
-    console.log(req.query.searchQuery);
+  async search(req: Request, res: Response, next: NextFunction) {
     const queryOptions = {
-      take: parseInt(req.query.take),
-      skip: parseInt(req.query.skip),
-      searchQuery: req.query.searchQuery,
+      take: parseInt(req.query.take as string | ""),
+      skip: parseInt(req.query.skip as string | ""),
+      searchQuery: req.query.searchQuery as string | undefined,
     };
 
     const [result, err] = await database.getProfiles(
-      req.profile.id,
+      req.body.profile.id,
       queryOptions
     );
 
@@ -96,15 +93,16 @@ class ProfilesController {
     res.json({ profiles: result });
   }
 
-  async getDetailsOfOne(req, res, next) {
+  async getDetailsOfOne(req: Request, res: Response, next: NextFunction) {
     const profileId = parseInt(req.params.profileId);
 
     if (isNaN(profileId)) {
-      return res.sendStatus(400);
+      res.sendStatus(400);
+      return;
     }
 
     let allowSensitive = false;
-    if (req.profile.id === profileId) {
+    if (req.body.profile.id === profileId) {
       allowSensitive = true;
     }
 
@@ -118,7 +116,7 @@ class ProfilesController {
     };
 
     const [result, err] = await database.getDetailsOfProfile(
-      req.profile.id,
+      req.body.profile.id,
       profileId,
       queryOptions
     );
@@ -133,13 +131,13 @@ class ProfilesController {
   put = [
     requiresAccount,
     upload.single("avatar"),
-    (req, res, next) => {
+    (req: Request, res: Response, next: NextFunction) => {
       req.body.file = req.file;
       next();
     },
     ...validateInput(validationChains.profileValidationChain(true)),
-    async (req, res, next) => {
-      let uploadRes = null;
+    async (req: Request, res: Response, next: NextFunction) => {
+      let uploadRes: string | Error | undefined = undefined;
       if (req.body.file) {
         uploadRes = await remoteStorage.uploadPostFile(req.body.file);
       }
@@ -149,17 +147,17 @@ class ProfilesController {
       }
 
       const queryOptions = {
-        username: req.validatedData.username,
-        fullName: req.validatedData.fullName,
-        bio: req.validatedData.bio ?? "",
-        country: req.validatedData.country ?? "",
-        gender: req.validatedData.gender,
-        websiteUrl: req.validatedData.websiteUrl ?? "",
+        username: req.body.validatedData.username,
+        fullName: req.body.validatedData.fullName,
+        bio: req.body.validatedData.bio ?? "",
+        country: req.body.validatedData.country ?? "",
+        gender: req.body.validatedData.gender,
+        websiteUrl: req.body.validatedData.websiteUrl ?? "",
         avatarUrl: uploadRes,
       };
 
       const [result, err] = await database.updateProfile(
-        req.profile.id,
+        req.body.profile.id,
         queryOptions
       );
 
@@ -173,13 +171,13 @@ class ProfilesController {
 
   follow = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
         followId: parseInt(req.params.profileId),
       };
 
       const [result, err] = await database.updateProfile(
-        req.profile.id,
+        req.body.profile.id,
         queryOptions
       );
 
@@ -192,13 +190,13 @@ class ProfilesController {
   ];
   unfollow = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
         unfollowId: parseInt(req.params.profileId),
       };
 
       const [result, err] = await database.updateProfile(
-        req.profile.id,
+        req.body.profile.id,
         queryOptions
       );
 
@@ -212,14 +210,14 @@ class ProfilesController {
 
   savePost = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       console.log("got it");
       const queryOptions = {
         savePostId: parseInt(req.params.postId),
       };
 
       const [result, err] = await database.updateProfile(
-        req.profile.id,
+        req.body.profile.id,
         queryOptions
       );
 
@@ -232,13 +230,13 @@ class ProfilesController {
   ];
   unsavePost = [
     requiresAccount,
-    async (req, res, next) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       const queryOptions = {
         unsavePostId: parseInt(req.params.postId),
       };
 
       const [result, err] = await database.updateProfile(
-        req.profile.id,
+        req.body.profile.id,
         queryOptions
       );
 
