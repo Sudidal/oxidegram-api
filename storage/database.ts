@@ -175,9 +175,9 @@ class Database {
       });
 
       if (options.singleValue) {
-        return [transformedResult, err];
-      } else {
         return [transformedResult[0], err];
+      } else {
+        return [transformedResult, err];
       }
     }
 
