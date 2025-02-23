@@ -18,9 +18,6 @@ function configurePassport() {
             where: {
               email: email,
             },
-            select: {
-              password: false
-            }
           })
         );
 
@@ -42,7 +39,7 @@ function configurePassport() {
           return done(null, false, { message: "Incorrect password" });
         }
 
-        return done(null, user);
+        return done(null, {...user, password: undefined});
       }
     )
   );
