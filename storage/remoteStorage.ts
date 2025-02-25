@@ -1,4 +1,4 @@
-import supabaseApi from "./supabaseAPI";
+import supabaseApi from "./supabaseAPI.ts";
 
 type MulterFile = Express.Multer.File
 
@@ -38,10 +38,10 @@ class RemoteStorage {
           uploadRes.data.path
         );
         return urlRes.data.publicUrl;
-      } catch (err) {
+      } catch (err: any) {
         return new Error(err);
       }
-    } catch (err) {
+    } catch (err: any) {
       return new Error(err.error.message);
     }
   };

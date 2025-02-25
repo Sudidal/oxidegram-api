@@ -1,10 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 
-import database from "../storage/database";
-import asyncHandler from "../utils/asyncHandler";
+import database from "../storage/database.ts";
+import asyncHandler from "../utils/asyncHandler.ts";
 import bcrypt from "bcryptjs";
-import validateInput from "../middleware/validateInput";
-import validationChains from "../validation/validationChains";
+import validateInput from "../middleware/validateInput.ts";
+import validationChains from "../validation/validationChains.ts";
 
 class RegisterController {
   constructor() {}

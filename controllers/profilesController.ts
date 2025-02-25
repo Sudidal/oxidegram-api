@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 
-import { requiresAccount } from "../middleware/authentication";
-import validateInput from "../middleware/validateInput";
-import validationChains from "../validation/validationChains";
+import { requiresAccount } from "../middleware/authentication.ts";
+import validateInput from "../middleware/validateInput.ts";
+import validationChains from "../validation/validationChains.ts";
 import multer from "multer";
-import remoteStorage from "../storage/remoteStorage";
-import database from "../storage/database";
+import remoteStorage from "../storage/remoteStorage.ts";
+import database from "../storage/database.ts";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });

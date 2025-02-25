@@ -19,13 +19,14 @@ class LoginController {
         }
         req.login(user, { session: false }, (err) => {
           if (err) {
-            next(err);
+            return next(err);
           }
           const jwtToken = jwt.sign(user, process.env.JWT_SECRET, {
             expiresIn: 60 * 60 * 24 * 4, // 4 Days
           });
-          res.json({ message: "Login successfull", jwtToken: jwtToken });
+          return res.json({ message: "Login successfull", jwtToken: jwtToken });
         });
+        return
       }
     )(req, res, next);
   }

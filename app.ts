@@ -2,11 +2,11 @@ import process from "process";
 
 import express from "express";
 import passport from "passport";
-import configurePassport from "./passportConfig";
+import configurePassport from "./passportConfig.ts";
 import cors from "cors";
-import errorHandler from "./middleware/errorHandler";
-import getProfileOfUser from "./middleware/getProfileOfUser";
-import { baseRouter } from "./routers/baseRouter";
+import errorHandler from "./middleware/errorHandler.ts";
+import getProfileOfUser from "./middleware/getProfileOfUser.ts";
+import { baseRouter } from "./routers/baseRouter.ts";
 
 import { User } from "@prisma/client";
 
@@ -28,7 +28,7 @@ app.use((req, res, next) => {
   passport.authenticate(
     "jwt",
     { session: false },
-    async (err: Error, user: User, info: string) => {
+    async (_err: Error, user: User) => {
       res.locals.user = user || {};
       res.locals.profile = await getProfileOfUser(user.id) || {};
       next();

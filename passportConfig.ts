@@ -5,8 +5,8 @@ import bcrypt from "bcryptjs";
 import localStrategy from "passport-local";
 import passportJwt from "passport-jwt";
 
-import asyncHandler from "./utils/asyncHandler";
-import prisma from "./utils/prisma";
+import asyncHandler from "./utils/asyncHandler.ts";
+import prisma from "./utils/prisma.ts";
 
 function configurePassport() {
   passport.use(

@@ -1,8 +1,8 @@
-import prisma from "./utils/prisma";
-import asyncHandler from "./utils/asyncHandler";
+import prisma from "./utils/prisma.ts";
+import asyncHandler from "./utils/asyncHandler.ts";
 import { Server as SocketIoServer } from "socket.io";
 import passport from "passport";
-import getProfileOfUser from "./middleware/getProfileOfUser";
+import getProfileOfUser from "./middleware/getProfileOfUser.ts";
 import { instrument } from "@socket.io/admin-ui";
 import process from "process";
 
@@ -14,7 +14,10 @@ class WSServer {
   #io: SocketIoServer;
   #adminIo: SocketIoServer;
 
-  constructor() {}
+  constructor() {
+    this.#io = {} as SocketIoServer;
+    this.#adminIo = {} as SocketIoServer;
+  }
 
   start(httpServer: Server) {
     this.#io = new SocketIoServer(httpServer, {
@@ -49,8 +52,6 @@ class WSServer {
       },
     });
   }
-
-  process;
 
   async #handleMessage(
     socket: Socket,
@@ -96,6 +97,7 @@ class WSServer {
         return allSockets[i];
       }
     }
+    return null;
   }
 
   async authenticate(socket: Socket, next: (error?: Error) => void) {
@@ -121,12 +123,20 @@ class WSServer {
   onlyWhenHandshakeSocket(
     middleware: (socket: Socket, next: () => void) => void
   ) {
+    class Query {
+      sid = "";
+    }
     return async (socket: Socket, next: () => void) => {
-      const handshake = socket.request["_query"].sid === undefined;
-      if (handshake) {
-        return middleware(socket, next);
-      } else {
-        next();
+      let handshake = false;
+      if ("_query" in socket.request) {
+        if ("sid" in (socket.request._query as { sid: string })) {
+          handshake = true;
+        }
+        if (handshake) {
+          return middleware(socket, next);
+        } else {
+          next();
+        }
       }
     };
   }

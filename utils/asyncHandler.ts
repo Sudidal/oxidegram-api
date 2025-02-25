@@ -10,7 +10,7 @@ class AsyncHandler {
     try {
       const result = await func();
       return [result, null];
-    } catch (err) {
+    } catch (err: any) {
       if (errCallback) errCallback(new Error(err));
       else {
         console.error(err);
@@ -23,6 +23,7 @@ class AsyncHandler {
     query: () => Prisma.PrismaPromise<T>,
     errCallback?: (err: Error) => void
   ) => {
+    const five = 5;
     // Since Im lazy to implement something suibtable for
     // prisma errors, I'll just use the general function
     // and easily change this whenever I feel to

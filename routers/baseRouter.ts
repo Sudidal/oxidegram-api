@@ -1,9 +1,9 @@
 import express from "express";
-import { registerRouter } from "./registerRouter";
-import { loginRouter } from "./loginRouter";
-import { profilesRouter } from "./profilesRouter";
-import { postsRouter } from "./postsRouter";
-import { contactsRouter } from "./contactsRouter";
+import { registerRouter } from "./registerRouter.ts";
+import { loginRouter } from "./loginRouter.ts";
+import { profilesRouter } from "./profilesRouter.ts";
+import { postsRouter } from "./postsRouter.ts";
+import { contactsRouter } from "./contactsRouter.ts";
 
 const router = express.Router();
 

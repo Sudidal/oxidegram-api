@@ -1,5 +1,5 @@
 import { body } from "express-validator";
-import customValidators from "./customValidators";
+import customValidators from "./customValidators.ts";
 import validationVars from "./validationVars.json";
 
 class ValidationChains {
@@ -36,6 +36,7 @@ class ValidationChains {
       .custom(async (value: string) => {
         if (update) return true;
         await customValidators.isUsernameNotUsed(value);
+        return;
       })
       .withMessage("Username already in use"),
 

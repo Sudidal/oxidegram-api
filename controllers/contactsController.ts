@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 
-import database from "../storage/database";
-import { requiresAccount } from "../middleware/authentication";
-import { contactExist } from "../utils/contactExist";
+import database from "../storage/database.ts";
+import { requiresAccount } from "../middleware/authentication.ts";
+import { contactExist } from "../utils/contactExist.ts";
 
 class ContactsController {
   constructor() {}

@@ -1,7 +1,7 @@
 import type { Meta } from "express-validator";
 
-import prisma from "../utils/prisma";
-import asyncHandler from "../utils/asyncHandler";
+import prisma from "../utils/prisma.ts";
+import asyncHandler from "../utils/asyncHandler.ts";
 
 class CustomValidators {
   constructor() {}
@@ -28,7 +28,7 @@ class CustomValidators {
     if (user) throw "";
     else return true;
   }
-  isPasswordsMatch(value: string, { req }: Meta) {
+  isPasswordsMatch(_value: string, { req }: Meta) {
     if (req.body.password === req.body.confirmPassword) return true;
     else return false;
   }
