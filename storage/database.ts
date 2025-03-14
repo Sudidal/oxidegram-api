@@ -9,7 +9,6 @@ import {
 import asyncHandler from "../utils/asyncHandler.ts";
 import prisma from "../utils/prisma.ts";
 
-type Flatten<Type> = Type extends Array<infer Item> ? Item : Type;
 type createAccountOptions = {
   email: string;
   password: string;
@@ -473,10 +472,10 @@ class Database {
   }
 
   /** @description Adds `liked` and `saved` fields and sets `likers` and `savers` to undefined */
-  #transformPosts(posts: Post[]) {
+  #transformPosts<T extends Post>(posts: T[]) {
     if(!posts || !Array.isArray(posts)) return posts
 
-    type TransformedPost = Flatten<typeof posts> & {
+    type TransformedPost = T & {
       liked: boolean;
       saved: boolean;
       likers: unknown;

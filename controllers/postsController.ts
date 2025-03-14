@@ -24,7 +24,7 @@ class PostsController {
       offset: parseInt((req.query.offset as string) || ""),
       sortByLikes: Boolean(req.query.sortByLikes || false),
       filter: filter,
-      order: "desc" as "asc" | "desc",
+      order: "desc" as const,
     };
 
     const [result, err] = await database.getPosts(

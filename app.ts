@@ -7,6 +7,7 @@ import cors from "cors";
 import errorHandler from "./middleware/errorHandler.ts";
 import getProfileOfUser from "./middleware/getProfileOfUser.ts";
 import { baseRouter } from "./routers/baseRouter.ts";
+import "./utils/getEnv.ts";
 
 import { User } from "@prisma/client";
 

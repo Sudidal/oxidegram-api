@@ -123,15 +123,11 @@ class WSServer {
   onlyWhenHandshakeSocket(
     middleware: (socket: Socket, next: () => void) => void
   ) {
-    class Query {
-      sid = "";
-    }
     return async (socket: Socket, next: () => void) => {
       let handshake = false;
       if ("_query" in socket.request) {
-        if ("sid" in (socket.request._query as { sid: string })) {
-          handshake = true;
-        }
+        handshake =
+          (socket.request._query as { sid: string }).sid !== undefined;
         if (handshake) {
           return middleware(socket, next);
         } else {

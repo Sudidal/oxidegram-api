@@ -10,7 +10,7 @@ function validateInput (validationChain: RequestHandler[]) {
       req.body.validatedData = matchedData(req);
       if (!validationErrs.isEmpty()) {
         res.status(400).json({ errors: validationErrs.array() });
-        return;
+        return
       } else {
         next();
       }
